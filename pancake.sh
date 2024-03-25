@@ -1,6 +1,21 @@
 #!/bin/bash
 
 # Define the functions
+create_directories() {
+    project=$1
+    # Parse pancake.yml and get the locations
+    project_location=$(yq e '.project_location' pancake.yml)
+    logs_location=$(yq e '.logs_location' pancake.yml)
+    secret_location=$(yq e '.secret_location' pancake.yml)
+    override_location=$(yq e '.override_location' pancake.yml)
+    # Create directories if they do not exist
+    for location in "$project_location/$project" "$logs_location/$project" "$secret_location/$project" "$override_location/$project"; do
+        if [ ! -d "$location" ]; then
+            mkdir -p "$location"
+            echo "Created directory: $location"
+        fi
+    done
+}
 
 project_list() {
     echo "📚 Project list:"
@@ -30,6 +45,7 @@ project_sync() {
     mkdir -p $project_location
     for project in $(yq e '.projects | keys | .[]' pancake.yml); do
         echo "🔄 Syncing $project..."
+        create_directories $project
         project_folder="$project_location/$project"
         mkdir -p $project_folder
         git -C "$project_folder" pull || git clone "$(yq e ".projects.$project.github_link" pancake.yml)" "$project_folder"
@@ -40,6 +56,7 @@ project_sync() {
 project_sync_single() {
     project=$1
     echo "🔄 Syncing $project..."
+    create_directories $project
     # Parse pancake.yml and clone/update the project
     project_location=$(yq e '.project_location' pancake.yml)
     project_folder="$project_location/$project"
