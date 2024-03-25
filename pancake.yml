@@ -1,7 +1,7 @@
 project_location: ./projects
 logs_location: ./logs
-secret_location: ./secret
-override_location: ./override
+secret_location: ./secrets
+override_location: ./overrides
 projects:
   project1:
     github_link: https://github.com/a6h15hek/my-portfolio.git
