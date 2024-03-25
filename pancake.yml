@@ -1,0 +1,11 @@
+project_location: ./projects
+logs_location: ./logs
+secret_location: ./secret
+override_location: ./override
+projects:
+  project1:
+    github_link: https://github.com/a6h15hek/my-portfolio.git
+  project2:
+    github_link: https://github.com/paulczar/spring-helloworld
+    build: mvn clean install 
+    run: java -jar @project_location@/<project_name>/target/*.jar
