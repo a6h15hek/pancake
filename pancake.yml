@@ -8,4 +8,4 @@ projects:
   project2:
     github_link: https://github.com/paulczar/spring-helloworld
     build: mvn clean install 
-    run: java -jar @project_location@/<project_name>/target/*.jar
+    run: java -Dprocess.name=<project_name> -jar @project_location@/<project_name>/target/*.jar > @project_location@/<project_name>/start.log 2>&1 &

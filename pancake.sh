@@ -4,12 +4,11 @@
 create_directories() {
     project=$1
     # Parse pancake.yml and get the locations
-    project_location=$(yq e '.project_location' pancake.yml)
     logs_location=$(yq e '.logs_location' pancake.yml)
     secret_location=$(yq e '.secret_location' pancake.yml)
     override_location=$(yq e '.override_location' pancake.yml)
     # Create directories if they do not exist
-    for location in "$project_location/$project" "$logs_location/$project" "$secret_location/$project" "$override_location/$project"; do
+    for location in "$logs_location/$project" "$secret_location/$project" "$override_location/$project"; do
         if [ ! -d "$location" ]; then
             mkdir -p "$location"
             echo "Created directory: $location"
@@ -105,6 +104,45 @@ run_project() {
     fi
 }
 
+stop_project() {
+    project=$1
+    success_msg="✅ $project stopped successfully."
+    not_running_msg="❌ $project is not running."
+    unsupported_os_msg="❌ This OS is not supported."
+
+    echo "🛑 Stopping $project..."
+
+    # Check the operating system
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        # Linux
+        pgrep -f $project && ps -p $(pgrep -f $project) -o lstart= && kill $(pgrep -f $project)
+        if [ $? -eq 0 ]; then
+            echo $success_msg
+        else
+            echo $not_running_msg
+        fi
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        # Mac OSX
+        pgrep -f $project && ps -p $(pgrep -f $project) -o lstart= && kill $(pgrep -f $project)
+        if [ $? -eq 0 ]; then
+            echo $success_msg
+        else
+            echo $not_running_msg
+        fi
+    elif [[ "$OSTYPE" == "cygwin"* ]] || [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "win32"* ]]; then
+        # Windows
+        tasklist /FI "IMAGENAME eq $project" 2>NUL | find /I /N "$project">NUL && taskkill /IM "$project" /F
+        if [ $? -eq 0 ]; then
+            echo $success_msg
+        else
+            echo $not_running_msg
+        fi
+    else
+        echo $unsupported_os_msg
+    fi
+}
+
+
 edit_config() {
     SUCCESS_MSG="✅ pancake.yml opened successfully."
     FAIL_MSG="❌ Failed to open pancake.yml."
@@ -167,6 +205,13 @@ elif [ "$1" = "run" ]; then
         echo "⚠️ No second argument provided for run"
         exit 1
     fi
+elif [ "$1" = "stop" ]; then
+    if [ -n "$2" ]; then
+        stop_project $2
+    else
+        echo "⚠️ No second argument provided for run"
+        exit 1
+    fi    
 elif [ "$1" = "build" ]; then
     if [ -n "$2" ]; then
         build_project $2
