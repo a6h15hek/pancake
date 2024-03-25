@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # Define the functions
-status() { echo "📊 Status function called"; }
 
 project_list() {
     echo "📚 Project list:"
@@ -110,18 +109,20 @@ edit_config() {
 help_menu() {
     echo "📖 Pancake Help Menu 📖"
     echo "Here are the available commands:"
-    echo "  pancake status - Display the status"
-    echo "  pancake project list - List all projects"
-    echo "  pancake edit config - Edit the configuration"
-    echo "  pancake run <project_name> - Run a specific project"
+    echo "  pancake project list - List all projects defined in the pancake.yml file."
+    echo "  pancake project sync - Sync all projects defined in the pancake.yml file. This will clone or pull the latest changes from the repositories."
+    echo "  pancake project sync <project_name> - Sync the specified project. This will clone or pull the latest changes from the repository of the specified project."
+    echo "  pancake project build <project_name> - Build the specified project. This will run the build command defined in the pancake.yml file for the specified project."
+    echo "  pancake project run <project_name> - Run the specified project. This will run the command defined in the run variable in the pancake.yml file for the specified project."
+    echo "  pancake edit config - Open the pancake.yml file in the default editor."
+    echo "Please replace <project_name> with the name of your project."
 }
+
 
 # Check the number of arguments and switch between different functions
 if [ "$#" -eq 0 ]; then
     help_menu
     exit 0
-elif [ "$1" = "status" ]; then
-    status
 elif [ "$1" = "project" ]; then
     if [ "$2" = "list" ]; then
         project_list
