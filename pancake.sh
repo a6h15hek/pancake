@@ -104,44 +104,31 @@ run_project() {
     fi
 }
 
-stop_project() {
-    project=$1
-    success_msg="✅ $project stopped successfully."
-    not_running_msg="❌ $project is not running."
-    unsupported_os_msg="❌ This OS is not supported."
-
-    echo "🛑 Stopping $project..."
+stop_process() {
+    process_name=$1
+    echo "🛑 Stopping $process_name..."
 
     # Check the operating system
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        # Linux
-        pgrep -f $project && ps -p $(pgrep -f $project) -o lstart= && kill $(pgrep -f $project)
+    if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "darwin"* ]]; then
+        # Linux or Mac OSX
+        pkill -f $process_name
         if [ $? -eq 0 ]; then
-            echo $success_msg
+            echo "✅ $process_name stopped successfully."
         else
-            echo $not_running_msg
-        fi
-    elif [[ "$OSTYPE" == "darwin"* ]]; then
-        # Mac OSX
-        pgrep -f $project && ps -p $(pgrep -f $project) -o lstart= && kill $(pgrep -f $project)
-        if [ $? -eq 0 ]; then
-            echo $success_msg
-        else
-            echo $not_running_msg
+            echo "❌ $process_name is not running."
         fi
     elif [[ "$OSTYPE" == "cygwin"* ]] || [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "win32"* ]]; then
         # Windows
-        tasklist /FI "IMAGENAME eq $project" 2>NUL | find /I /N "$project">NUL && taskkill /IM "$project" /F
+        taskkill /IM "$process_name" /F
         if [ $? -eq 0 ]; then
-            echo $success_msg
+            echo "✅ $process_name stopped successfully."
         else
-            echo $not_running_msg
+            echo "❌ $process_name is not running."
         fi
     else
-        echo $unsupported_os_msg
+        echo "❌ This OS is not supported."
     fi
 }
-
 
 edit_config() {
     SUCCESS_MSG="✅ pancake.yml opened successfully."
