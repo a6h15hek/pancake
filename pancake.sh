@@ -85,6 +85,12 @@ build_project() {
 
 run_project() {
     project=$1
+    # Check if the process is already running
+    pid=$(jps -l | grep "$project" | awk '{print $1}')
+    if [ -n "$pid" ]; then
+        echo "⚠️ $project is already running with PID $pid."
+        return
+    fi
     echo "🏃 Running $project..."
     # Parse pancake.yml and get the run command for the project
     run_command=$(yq e ".projects.$project.run" pancake.yml)
