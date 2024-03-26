@@ -119,7 +119,7 @@ stop_process() {
         fi
     elif [[ "$OSTYPE" == "cygwin"* ]] || [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "win32"* ]]; then
         # Windows
-        taskkill /IM "$process_name" /F
+        taskkill //IM "$process_name" //F
         if [ $? -eq 0 ]; then
             echo "✅ $process_name stopped successfully."
         else
@@ -159,6 +159,42 @@ help_menu() {
     echo "  pancake edit config - Open the pancake.yml file in the default editor."
     echo "Please replace <project_name> with the name of your project."
 }
+
+status_project() {
+    echo "📊 Status of Projects:"
+    
+    # Parse pancake.yml and loop through each project
+    for project in $(yq e '.projects | keys | .[]' pancake.yml); do
+        echo "Project: $project"
+        # Check if the process is running
+        pid=$(pgrep -f "$project")
+        if [ -z "$pid" ]; then
+            echo "  Status: Not running"
+        else
+            echo "  Status: Running"
+            echo "  PID: $pid"
+            # Get the start time of the process
+            if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "darwin"* ]]; then
+                # Linux or Mac OSX
+                start_time=$(ps -o lstart= -p $pid)
+            elif [[ "$OSTYPE" == "cygwin"* ]] || [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "win32"* ]]; then
+                # Windows
+                start_time=$(wmic process where "processid=$pid" get CreationDate | grep -v "CreationDate" | tr -d '[:space:]')
+                start_time=$(date -d "${start_time:0:4}-${start_time:4:2}-${start_time:6:2} ${start_time:8:2}:${start_time:10:2}:${start_time:12:2}" +"%a %b %d %T %Y")
+            else
+                start_time="Unknown"
+            fi
+            echo "  Start Time: $start_time"
+            # Additional status information can be added here, like memory usage and CPU utilization
+            # memory=$(ps -p $pid -o %mem)
+            # cpu=$(ps -p $pid -o %cpu)
+            # echo "  Memory Usage: $memory"
+            # echo "  CPU Usage: $cpu"
+        fi
+        echo ""
+    done
+}
+
 
 
 # Check the number of arguments and switch between different functions
@@ -206,6 +242,8 @@ elif [ "$1" = "build" ]; then
         echo "⚠️ No second argument provided for run"
         exit 1
     fi
+elif [ "$1" = "status" ]; then
+    status_project
 else
     echo "❌ Invalid command: $1"
     exit 1
