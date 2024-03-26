@@ -161,22 +161,25 @@ help_menu() {
 }
 
 status_project() {
+    # Print the table header
     echo "📊 Status of Projects:"
+    printf "| %-10s | %-12s | %-5s | %-30s |\n" "Project" "Status" "PID" "Start Time"
+    printf "|%s|%s|%s|%s|\n" "-----------" "--------------" "-------" "----------------------------------"
     
     # Parse pancake.yml and loop through each project
     for project in $(yq e '.projects | keys | .[]' pancake.yml); do
-        echo "Project: $project"
         # Check if the process is running
-        pid=$(pgrep -f "$project")
+        pid=$(jps -l | grep "$project" | awk '{print $1}')
         if [ -z "$pid" ]; then
-            echo "  Status: Not running"
+            status="Not running"
+            pid="-"
+            start_time="-"
         else
-            echo "  Status: Running"
-            echo "  PID: $pid"
+            status="Running"
             # Get the start time of the process
             if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "darwin"* ]]; then
                 # Linux or Mac OSX
-                start_time=$(ps -o lstart= -p $pid)
+                start_time=$(ps -p $pid -o lstart=)
             elif [[ "$OSTYPE" == "cygwin"* ]] || [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "win32"* ]]; then
                 # Windows
                 start_time=$(wmic process where "processid=$pid" get CreationDate | grep -v "CreationDate" | tr -d '[:space:]')
@@ -184,17 +187,11 @@ status_project() {
             else
                 start_time="Unknown"
             fi
-            echo "  Start Time: $start_time"
-            # Additional status information can be added here, like memory usage and CPU utilization
-            # memory=$(ps -p $pid -o %mem)
-            # cpu=$(ps -p $pid -o %cpu)
-            # echo "  Memory Usage: $memory"
-            # echo "  CPU Usage: $cpu"
         fi
-        echo ""
+        # Print the project status in a formatted table
+        printf "| %-10s | %-12s | %-5s | %-30s |\n" "$project" "$status" "$pid" "$start_time"
     done
 }
-
 
 
 # Check the number of arguments and switch between different functions
@@ -230,7 +227,7 @@ elif [ "$1" = "run" ]; then
     fi
 elif [ "$1" = "stop" ]; then
     if [ -n "$2" ]; then
-        stop_project $2
+        stop_process $2
     else
         echo "⚠️ No second argument provided for run"
         exit 1
