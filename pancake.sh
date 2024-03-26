@@ -158,11 +158,15 @@ help_menu() {
     echo "  pancake project list - List all projects defined in the pancake.yml file."
     echo "  pancake project sync - Sync all projects defined in the pancake.yml file. This will clone or pull the latest changes from the repositories."
     echo "  pancake project sync <project_name> - Sync the specified project. This will clone or pull the latest changes from the repository of the specified project."
-    echo "  pancake project build <project_name> - Build the specified project. This will run the build command defined in the pancake.yml file for the specified project."
-    echo "  pancake project run <project_name> - Run the specified project. This will run the command defined in the run variable in the pancake.yml file for the specified project."
+    echo "  pancake build <project_name> - Build the specified project. This will run the build command defined in the pancake.yml file for the specified project."
+    echo "  pancake run <project_name> - Run the specified project. This will run the command defined in the run variable in the pancake.yml file for the specified project."
+    echo "  pancake stop <project_name> - Stop the specified project. This will stop the process running the specified project."
+    echo "  pancake status - Check the status of all projects. This will print the status, PID, and start time of the process for each project."
     echo "  pancake edit config - Open the pancake.yml file in the default editor."
+    echo "  pancake open <project_name> - Open the specified project with the command mentioned in code_editor_command."
     echo "Please replace <project_name> with the name of your project."
 }
+
 
 status_project() {
     # Print the table header
@@ -195,6 +199,17 @@ status_project() {
         # Print the project status in a formatted table
         printf "| %-10s | %-12s | %-5s | %-30s |\n" "$project" "$status" "$pid" "$start_time"
     done
+}
+
+open_project() {
+    project=$1
+    echo "📂 Opening $project..."
+    # Parse pancake.yml and get the code editor command and project location
+    code_editor_command=$(yq e '.code_editor_command' pancake.yml)
+    project_location=$(yq e '.project_location' pancake.yml)
+    # Open the project with the code editor command
+    $code_editor_command "$project_location/$project"
+    echo "✅ $project opened successfully."
 }
 
 
@@ -241,6 +256,13 @@ elif [ "$1" = "build" ]; then
         build_project $2
     else
         echo "⚠️ No second argument provided for run"
+        exit 1
+    fi
+elif [ "$1" = "open" ]; then
+    if [ -n "$2" ]; then
+        open_project $2
+    else
+        echo "⚠️ No second argument provided for open"
         exit 1
     fi
 elif [ "$1" = "status" ]; then
