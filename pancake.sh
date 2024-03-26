@@ -111,16 +111,18 @@ stop_process() {
     # Check the operating system
     if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "darwin"* ]]; then
         # Linux or Mac OSX
-        pkill -f $process_name
-        if [ $? -eq 0 ]; then
+        pid=$(jps -l | grep "$process_name" | awk '{print $1}')
+        if [ -n "$pid" ]; then
+            kill -9 $pid
             echo "✅ $process_name stopped successfully."
         else
             echo "❌ $process_name is not running."
         fi
     elif [[ "$OSTYPE" == "cygwin"* ]] || [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "win32"* ]]; then
         # Windows
-        taskkill //IM "$process_name" //F
-        if [ $? -eq 0 ]; then
+        pid=$(jps -l | findstr "$process_name" | awk '{print $1}')
+        if [ -n "$pid" ]; then
+            taskkill //PID $pid //F
             echo "✅ $process_name stopped successfully."
         else
             echo "❌ $process_name is not running."
@@ -129,6 +131,7 @@ stop_process() {
         echo "❌ This OS is not supported."
     fi
 }
+
 
 edit_config() {
     SUCCESS_MSG="✅ pancake.yml opened successfully."
