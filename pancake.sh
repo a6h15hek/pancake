@@ -88,6 +88,7 @@ run_project() {
     echo "🏃 Running $project..."
     # Parse pancake.yml and get the run command for the project
     run_command=$(yq e ".projects.$project.run" pancake.yml)
+    logs_location=$(yq e '.logs_location' pancake.yml)
     if [ "$run_command" != "null" ]; then
         # Replace all occurrences of @@variable@ with the value of the variable
         for variable in $(yq e 'keys | .[]' pancake.yml); do
@@ -97,8 +98,8 @@ run_project() {
         # Replace <project_name> with the actual project name
         run_command=${run_command//<project_name>/$project}
         echo "Running: $run_command"
-        $run_command
-        echo "✅ $project run successfully."
+        nohup $run_command > "$logs_location/$project/start.log" 2>&1 &
+        echo "✅ $project run successfully. Logs are saved in $logs_location/$project/start.log."
     else
         echo "❌ Run variable not exists. Cannot run the project."
     fi
