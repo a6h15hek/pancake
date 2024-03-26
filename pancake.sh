@@ -88,6 +88,7 @@ run_project() {
     echo "🏃 Running $project..."
     # Parse pancake.yml and get the run command for the project
     run_command=$(yq e ".projects.$project.run" pancake.yml)
+    logs_location=$(yq e '.logs_location' pancake.yml)
     if [ "$run_command" != "null" ]; then
         # Replace all occurrences of @@variable@ with the value of the variable
         for variable in $(yq e 'keys | .[]' pancake.yml); do
@@ -97,48 +98,38 @@ run_project() {
         # Replace <project_name> with the actual project name
         run_command=${run_command//<project_name>/$project}
         echo "Running: $run_command"
-        $run_command
-        echo "✅ $project run successfully."
+        nohup $run_command > "$logs_location/$project/start.log" 2>&1 &
+        echo "✅ $project run successfully. Logs are saved in $logs_location/$project/start.log."
     else
         echo "❌ Run variable not exists. Cannot run the project."
     fi
 }
 
-stop_project() {
-    project=$1
-    success_msg="✅ $project stopped successfully."
-    not_running_msg="❌ $project is not running."
-    unsupported_os_msg="❌ This OS is not supported."
-
-    echo "🛑 Stopping $project..."
+stop_process() {
+    process_name=$1
+    echo "🛑 Stopping $process_name..."
 
     # Check the operating system
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        # Linux
-        pgrep -f $project && ps -p $(pgrep -f $project) -o lstart= && kill $(pgrep -f $project)
-        if [ $? -eq 0 ]; then
-            echo $success_msg
+    if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "darwin"* ]]; then
+        # Linux or Mac OSX
+        pid=$(jps -l | grep "$process_name" | awk '{print $1}')
+        if [ -n "$pid" ]; then
+            kill -9 $pid
+            echo "✅ $process_name stopped successfully."
         else
-            echo $not_running_msg
-        fi
-    elif [[ "$OSTYPE" == "darwin"* ]]; then
-        # Mac OSX
-        pgrep -f $project && ps -p $(pgrep -f $project) -o lstart= && kill $(pgrep -f $project)
-        if [ $? -eq 0 ]; then
-            echo $success_msg
-        else
-            echo $not_running_msg
+            echo "❌ $process_name is not running."
         fi
     elif [[ "$OSTYPE" == "cygwin"* ]] || [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "win32"* ]]; then
         # Windows
-        tasklist /FI "IMAGENAME eq $project" 2>NUL | find /I /N "$project">NUL && taskkill /IM "$project" /F
-        if [ $? -eq 0 ]; then
-            echo $success_msg
+        pid=$(jps -l | findstr "$process_name" | awk '{print $1}')
+        if [ -n "$pid" ]; then
+            taskkill //PID $pid //F
+            echo "✅ $process_name stopped successfully."
         else
-            echo $not_running_msg
+            echo "❌ $process_name is not running."
         fi
     else
-        echo $unsupported_os_msg
+        echo "❌ This OS is not supported."
     fi
 }
 
@@ -167,10 +158,58 @@ help_menu() {
     echo "  pancake project list - List all projects defined in the pancake.yml file."
     echo "  pancake project sync - Sync all projects defined in the pancake.yml file. This will clone or pull the latest changes from the repositories."
     echo "  pancake project sync <project_name> - Sync the specified project. This will clone or pull the latest changes from the repository of the specified project."
-    echo "  pancake project build <project_name> - Build the specified project. This will run the build command defined in the pancake.yml file for the specified project."
-    echo "  pancake project run <project_name> - Run the specified project. This will run the command defined in the run variable in the pancake.yml file for the specified project."
+    echo "  pancake build <project_name> - Build the specified project. This will run the build command defined in the pancake.yml file for the specified project."
+    echo "  pancake run <project_name> - Run the specified project. This will run the command defined in the run variable in the pancake.yml file for the specified project."
+    echo "  pancake stop <project_name> - Stop the specified project. This will stop the process running the specified project."
+    echo "  pancake status - Check the status of all projects. This will print the status, PID, and start time of the process for each project."
     echo "  pancake edit config - Open the pancake.yml file in the default editor."
+    echo "  pancake open <project_name> - Open the specified project with the command mentioned in code_editor_command."
     echo "Please replace <project_name> with the name of your project."
+}
+
+
+status_project() {
+    # Print the table header
+    echo "📊 Status of Projects:"
+    printf "| %-10s | %-12s | %-5s | %-30s |\n" "Project" "Status" "PID" "Start Time"
+    printf "|%s|%s|%s|%s|\n" "-----------" "--------------" "-------" "----------------------------------"
+    
+    # Parse pancake.yml and loop through each project
+    for project in $(yq e '.projects | keys | .[]' pancake.yml); do
+        # Check if the process is running
+        pid=$(jps -l | grep "$project" | awk '{print $1}')
+        if [ -z "$pid" ]; then
+            status="Not running"
+            pid="-"
+            start_time="-"
+        else
+            status="Running"
+            # Get the start time of the process
+            if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "darwin"* ]]; then
+                # Linux or Mac OSX
+                start_time=$(ps -p $pid -o lstart=)
+            elif [[ "$OSTYPE" == "cygwin"* ]] || [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "win32"* ]]; then
+                # Windows
+                start_time=$(wmic process where "processid=$pid" get CreationDate | grep -v "CreationDate" | tr -d '[:space:]')
+                start_time=$(date -d "${start_time:0:4}-${start_time:4:2}-${start_time:6:2} ${start_time:8:2}:${start_time:10:2}:${start_time:12:2}" +"%a %b %d %T %Y")
+            else
+                start_time="Unknown"
+            fi
+        fi
+        # Print the project status in a formatted table
+        printf "| %-10s | %-12s | %-5s | %-30s |\n" "$project" "$status" "$pid" "$start_time"
+    done
+}
+
+open_project() {
+    project=$1
+    echo "📂 Opening $project..."
+    # Parse pancake.yml and get the code editor command and project location
+    code_editor_command=$(yq e '.code_editor_command' pancake.yml)
+    project_location=$(yq e '.project_location' pancake.yml)
+    # Open the project with the code editor command
+    $code_editor_command "$project_location/$project"
+    echo "✅ $project opened successfully."
 }
 
 
@@ -207,7 +246,7 @@ elif [ "$1" = "run" ]; then
     fi
 elif [ "$1" = "stop" ]; then
     if [ -n "$2" ]; then
-        stop_project $2
+        stop_process $2
     else
         echo "⚠️ No second argument provided for run"
         exit 1
@@ -219,6 +258,15 @@ elif [ "$1" = "build" ]; then
         echo "⚠️ No second argument provided for run"
         exit 1
     fi
+elif [ "$1" = "open" ]; then
+    if [ -n "$2" ]; then
+        open_project $2
+    else
+        echo "⚠️ No second argument provided for open"
+        exit 1
+    fi
+elif [ "$1" = "status" ]; then
+    status_project
 else
     echo "❌ Invalid command: $1"
     exit 1
