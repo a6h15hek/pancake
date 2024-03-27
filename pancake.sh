@@ -260,8 +260,8 @@ help_menu() {
 status_project() {
     # Print the table header
     echo "📊 Status of Projects:"
-    printf "| %-10s | %-12s | %-5s | %-30s | %-20s |\n" "Project" "Status" "PID" "Start Time" "URL"
-    printf "|%s|%s|%s|%s|%s|\n" "------------" "--------------" "-------" "--------------------------------" "----------------------"
+    printf "| %-10s | %-12s | %-5s | %-30s | %-30s |\n" "Project" "Status" "PID" "Start Time" "URL"
+    printf "|%s|%s|%s|%s|%s|\n" "------------" "--------------" "-------" "--------------------------------" "--------------------------------"
     
     # Check if lsof is installed
     if command -v lsof &> /dev/null; then
@@ -273,7 +273,19 @@ status_project() {
     # Parse pancake.yml and loop through each project
     for project in $(yq e '.projects | keys | .[]' pancake.yml); do
         # Check if the process is running
-        pid=$(jps -l | grep "$project" | awk '{print $1}')
+        project_type=$(yq e ".projects.$project.type" pancake.yml)
+        if [ "$project_type" = "web" ]; then
+            port=$(yq e ".projects.$project.port" pancake.yml)
+            if command -v lsof &> /dev/null; then
+                pid=$(lsof -t -i:$port -sTCP:LISTEN)
+            else
+                pid=$(netstat -tuln | grep ":$port " | awk '{print $7}' | cut -d'/' -f1)
+            fi
+        else
+            pid=$(jps -l | grep "$project" | awk '{print $1}')
+        fi
+        # echo "📊 Status of $project: $pid"
+        # continue
         if [ -n "$pid" ]; then
             status="Running"
             # Get the start time of the process
@@ -301,7 +313,7 @@ status_project() {
             url="-"
         fi
         # Print the project status in a formatted table
-        printf "| %-10s | %-12s | %-5s | %-30s | %-20s |\n" "$project" "$status" "$pid" "$start_time" "$url"
+        printf "| %-10s | %-12s | %-5s | %-30s | %-30s |\n" "$project" "$status" "$pid" "$start_time" "$url"
     done
 }
 
