@@ -301,8 +301,13 @@ status_project() {
             fi
             # Get the port that the process is listening on
             port=$(eval $get_port_cmd)
-            if [ -n "$port" ]; then
-                url="http://localhost:$port"
+            comma_sperated_ports=$(echo "$port" | tr '\n' ',')
+
+            # If you want to remove the trailing comma
+            comma_sperated_ports=${comma_sperated_ports%?}
+
+            if [ -n "$comma_sperated_ports" ]; then
+                url="http://localhost:$comma_sperated_ports"
             else
                 url="-"
             fi
