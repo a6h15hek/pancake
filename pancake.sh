@@ -85,6 +85,14 @@ build_project() {
 
 run_project() {
     project=$1
+
+    # Parse pancake.yml and get the type of the project
+    project_type=$(yq e ".projects.$project.type" pancake.yml)
+    if [ "$project_type" = "web" ]; then
+        run_project_web $project
+        return
+    fi
+
     # Check if the process is already running
     pid=$(jps -l | grep "$project" | awk '{print $1}')
     if [ -n "$pid" ]; then
@@ -111,10 +119,62 @@ run_project() {
     fi
 }
 
-stop_process() {
-    process_name=$1
-    echo "🛑 Stopping $process_name..."
 
+run_project_web() {
+    project=$1
+    # Check if the process is already running
+    port=$(yq e ".projects.$project.port" pancake.yml)
+    if command -v lsof &> /dev/null; then
+        pid=$(lsof -t -i:$port)
+    else
+        pid=$(netstat -tuln | grep ":$port " | awk '{print $7}' | cut -d'/' -f1)
+    fi
+    if [ -n "$pid" ]; then
+        echo "⚠️ $project is already running with PID $pid."
+        return
+    fi
+    echo "🏃 Running Web $project..."
+    # Parse pancake.yml and get the run command for the project
+    run_command=$(yq e ".projects.$project.run" pancake.yml)
+    logs_location=$(yq e '.logs_location' pancake.yml)
+    project_location=$(yq e '.project_location' pancake.yml)
+    project_folder="$project_location/$project"
+    if [ "$run_command" != "null" ]; then
+        # Replace all occurrences of @@variable@ with the value of the variable
+        for variable in $(yq e 'keys | .[]' pancake.yml); do
+            value=$(yq e ".$variable" pancake.yml)
+            run_command=${run_command//@$variable@/$value}
+        done
+        # Replace <project_name> with the actual project name
+        run_command=${run_command//<project_name>/$project}
+        # # Add the PORT environment variable to the run command
+        # if [[ "$OSTYPE" == "cygwin"* ]] || [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "win32"* ]]; then
+        #     # Windows
+        #     run_command="set PORT=$port && $run_command"
+        # else
+        #     # Linux or Mac OSX
+        #     run_command="PORT=$port $run_command"
+        # fi
+        echo "Running in subshell: cd $project_folder && $run_command"
+        (cd "$project_folder" && $run_command)
+        echo "✅ $project run successfully. Logs are saved in $logs_location/$project/start.log."
+    else
+        echo "❌ Run variable not exists. Cannot run the project."
+    fi
+}
+
+stop_process() {
+    project=$1
+
+    # Parse pancake.yml and get the type of the project
+    project_type=$(yq e ".projects.$project.type" pancake.yml)
+    return
+    if [ "$project_type" = "web" ]; then
+        run_project_web $project
+        return
+    fi
+
+    echo "🛑 Stopping $process_name..."
     # Check the operating system
     if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "darwin"* ]]; then
         # Linux or Mac OSX
@@ -133,6 +193,34 @@ stop_process() {
             echo "✅ $process_name stopped successfully."
         else
             echo "❌ $process_name is not running."
+        fi
+    else
+        echo "❌ This OS is not supported."
+    fi
+}
+
+stop_process_web() {
+    project=$1
+    port=$(yq e ".projects.$project.port" pancake.yml)
+    echo "🛑 Stopping Web $project with port: $port..."
+    # Check the operating system
+    if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "darwin"* ]]; then
+        # Linux or Mac OSX
+        pid=$(lsof -t -i:$port)
+        if [ -n "$pid" ]; then
+            kill -9 $pid
+            echo "✅ $project stopped successfully."
+        else
+            echo "❌ $project is not running."
+        fi
+    elif [[ "$OSTYPE" == "cygwin"* ]] || [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "win32"* ]]; then
+        # Windows
+        pid=$(netstat -ano | findstr :$port | awk '{print $5}')
+        if [ -n "$pid" ]; then
+            taskkill //PID $pid //F
+            echo "✅ $project stopped successfully."
+        else
+            echo "❌ $project is not running."
         fi
     else
         echo "❌ This OS is not supported."
