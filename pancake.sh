@@ -38,7 +38,7 @@ project_list() {
 }
 
 project_sync() {
-    echo "🔄 Syncing projects..."
+    echo "🔄 $(yq e ".projects.$project.github_link" pancake.yml): Syncing projects... "
     # Parse pancake.yml and clone/update each project
     project_location=$(yq e '.project_location' pancake.yml)
     mkdir -p $project_location
@@ -54,7 +54,7 @@ project_sync() {
 
 project_sync_single() {
     project=$1
-    echo "🔄 Syncing $project..."
+    echo "🔄 $(yq e ".projects.$project.github_link" pancake.yml): Syncing $project..."
     create_directories $project
     # Parse pancake.yml and clone/update the project
     project_location=$(yq e '.project_location' pancake.yml)
@@ -93,8 +93,11 @@ run_project() {
     fi
     echo "🏃 Running $project..."
     # Parse pancake.yml and get the run command for the project
+    project_location=$(yq e '.project_location' pancake.yml)
     run_command=$(yq e ".projects.$project.run" pancake.yml)
     logs_location=$(yq e '.logs_location' pancake.yml)
+    project_type=$(yq e ".projects.$project.type" pancake.yml)
+    project_port=$(yq e ".projects.$project.port" pancake.yml)
     if [ "$run_command" != "null" ]; then
         # Replace all occurrences of @@variable@ with the value of the variable
         for variable in $(yq e 'keys | .[]' pancake.yml); do
@@ -103,6 +106,10 @@ run_project() {
         done
         # Replace <project_name> with the actual project name
         run_command=${run_command//<project_name>/$project}
+        # If the project type is web, set the PORT and run the command in the root directory of the project
+        if [ "$project_type" == "web" ]; then
+            run_command="cd $project_location/$project && PORT=$project_port $run_command"
+        fi
         echo "Running: $run_command"
         nohup $run_command > "$logs_location/$project/start.log" 2>&1 &
         echo "✅ $project run successfully. Logs are saved in $logs_location/$project/start.log."
@@ -114,11 +121,17 @@ run_project() {
 stop_process() {
     process_name=$1
     echo "🛑 Stopping $process_name..."
+    project_type=$(yq e ".projects.$process_name.type" pancake.yml)
+    project_port=$(yq e ".projects.$process_name.port" pancake.yml)
 
     # Check the operating system
     if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "darwin"* ]]; then
         # Linux or Mac OSX
-        pid=$(jps -l | grep "$process_name" | awk '{print $1}')
+        if [ "$project_type" == "web" ]; then
+            pid=$(lsof -t -i:$project_port)
+        else
+            pid=$(jps -l | grep "$process_name" | awk '{print $1}')
+        fi
         if [ -n "$pid" ]; then
             kill -9 $pid
             echo "✅ $process_name stopped successfully."
@@ -127,7 +140,11 @@ stop_process() {
         fi
     elif [[ "$OSTYPE" == "cygwin"* ]] || [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "win32"* ]]; then
         # Windows
-        pid=$(jps -l | findstr "$process_name" | awk '{print $1}')
+        if [ "$project_type" == "web" ]; then
+            pid=$(netstat -ano | findstr :$project_port | awk '{print $5}')
+        else
+            pid=$(jps -l | findstr "$process_name" | awk '{print $1}')
+        fi
         if [ -n "$pid" ]; then
             taskkill //PID $pid //F
             echo "✅ $process_name stopped successfully."
@@ -173,22 +190,24 @@ help_menu() {
     echo "Please replace <project_name> with the name of your project."
 }
 
-
 status_project() {
     # Print the table header
     echo "📊 Status of Projects:"
-    printf "| %-10s | %-12s | %-5s | %-30s |\n" "Project" "Status" "PID" "Start Time"
-    printf "|%s|%s|%s|%s|\n" "-----------" "--------------" "-------" "----------------------------------"
+    printf "| %-10s | %-12s | %-5s | %-30s | %-20s |\n" "Project" "Status" "PID" "Start Time" "URL"
+    printf "|%s|%s|%s|%s|%s|\n" "------------" "--------------" "-------" "--------------------------------" "----------------------"
     
+    # Check if lsof is installed
+    if command -v lsof &> /dev/null; then
+        get_port_cmd="lsof -Pan -p \$pid -iTCP -sTCP:LISTEN | awk '{if (NR>1) print \$9}' | cut -d':' -f2"
+    else
+        get_port_cmd="netstat -tuln | grep \"\$pid\" | awk '{print \$4}' | cut -d':' -f2"
+    fi
+
     # Parse pancake.yml and loop through each project
     for project in $(yq e '.projects | keys | .[]' pancake.yml); do
         # Check if the process is running
         pid=$(jps -l | grep "$project" | awk '{print $1}')
-        if [ -z "$pid" ]; then
-            status="Not running"
-            pid="-"
-            start_time="-"
-        else
+        if [ -n "$pid" ]; then
             status="Running"
             # Get the start time of the process
             if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "darwin"* ]]; then
@@ -201,11 +220,24 @@ status_project() {
             else
                 start_time="Unknown"
             fi
+            # Get the port that the process is listening on
+            port=$(eval $get_port_cmd)
+            if [ -n "$port" ]; then
+                url="http://localhost:$port"
+            else
+                url="-"
+            fi
+        else
+            status="Not running"
+            pid="-"
+            start_time="-"
+            url="-"
         fi
         # Print the project status in a formatted table
-        printf "| %-10s | %-12s | %-5s | %-30s |\n" "$project" "$status" "$pid" "$start_time"
+        printf "| %-10s | %-12s | %-5s | %-30s | %-20s |\n" "$project" "$status" "$pid" "$start_time" "$url"
     done
 }
+
 
 open_project() {
     project=$1
