@@ -93,11 +93,8 @@ run_project() {
     fi
     echo "🏃 Running $project..."
     # Parse pancake.yml and get the run command for the project
-    project_location=$(yq e '.project_location' pancake.yml)
     run_command=$(yq e ".projects.$project.run" pancake.yml)
     logs_location=$(yq e '.logs_location' pancake.yml)
-    project_type=$(yq e ".projects.$project.type" pancake.yml)
-    project_port=$(yq e ".projects.$project.port" pancake.yml)
     if [ "$run_command" != "null" ]; then
         # Replace all occurrences of @@variable@ with the value of the variable
         for variable in $(yq e 'keys | .[]' pancake.yml); do
@@ -106,10 +103,6 @@ run_project() {
         done
         # Replace <project_name> with the actual project name
         run_command=${run_command//<project_name>/$project}
-        # If the project type is web, set the PORT and run the command in the root directory of the project
-        if [ "$project_type" == "web" ]; then
-            run_command="cd $project_location/$project && PORT=$project_port $run_command"
-        fi
         echo "Running: $run_command"
         nohup $run_command > "$logs_location/$project/start.log" 2>&1 &
         echo "✅ $project run successfully. Logs are saved in $logs_location/$project/start.log."
@@ -121,17 +114,11 @@ run_project() {
 stop_process() {
     process_name=$1
     echo "🛑 Stopping $process_name..."
-    project_type=$(yq e ".projects.$process_name.type" pancake.yml)
-    project_port=$(yq e ".projects.$process_name.port" pancake.yml)
 
     # Check the operating system
     if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "darwin"* ]]; then
         # Linux or Mac OSX
-        if [ "$project_type" == "web" ]; then
-            pid=$(lsof -t -i:$project_port)
-        else
-            pid=$(jps -l | grep "$process_name" | awk '{print $1}')
-        fi
+        pid=$(jps -l | grep "$process_name" | awk '{print $1}')
         if [ -n "$pid" ]; then
             kill -9 $pid
             echo "✅ $process_name stopped successfully."
@@ -140,11 +127,7 @@ stop_process() {
         fi
     elif [[ "$OSTYPE" == "cygwin"* ]] || [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "win32"* ]]; then
         # Windows
-        if [ "$project_type" == "web" ]; then
-            pid=$(netstat -ano | findstr :$project_port | awk '{print $5}')
-        else
-            pid=$(jps -l | findstr "$process_name" | awk '{print $1}')
-        fi
+        pid=$(jps -l | findstr "$process_name" | awk '{print $1}')
         if [ -n "$pid" ]; then
             taskkill //PID $pid //F
             echo "✅ $process_name stopped successfully."
@@ -155,7 +138,6 @@ stop_process() {
         echo "❌ This OS is not supported."
     fi
 }
-
 
 edit_config() {
     SUCCESS_MSG="✅ pancake.yml opened successfully."
