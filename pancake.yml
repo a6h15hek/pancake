@@ -1,7 +1,7 @@
-project_location: ./projects
-logs_location: ./logs
-secret_location: ./secrets
-override_location: ./overrides
+project_location: projects
+logs_location: logs
+secret_location: secrets
+override_location: overrides
 code_editor_command: idea
 projects:
   project1:

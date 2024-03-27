@@ -85,7 +85,6 @@ build_project() {
 
 run_project() {
     project=$1
-
     # Parse pancake.yml and get the type of the project
     project_type=$(yq e ".projects.$project.type" pancake.yml)
     if [ "$project_type" = "web" ]; then
@@ -118,7 +117,6 @@ run_project() {
         echo "❌ Run variable not exists. Cannot run the project."
     fi
 }
-
 
 run_project_web() {
     project=$1
@@ -156,7 +154,7 @@ run_project_web() {
         #     run_command="PORT=$port $run_command"
         # fi
         echo "Running in subshell: cd $project_folder && $run_command"
-        (cd "$project_folder" && $run_command)
+        (cd "$project_folder" && nohup $run_command > "../../$logs_location/$project/start.log" 2>&1 &)
         echo "✅ $project run successfully. Logs are saved in $logs_location/$project/start.log."
     else
         echo "❌ Run variable not exists. Cannot run the project."
@@ -165,16 +163,15 @@ run_project_web() {
 
 stop_process() {
     project=$1
+    echo "🛑 Stopping $project..."
 
     # Parse pancake.yml and get the type of the project
     project_type=$(yq e ".projects.$project.type" pancake.yml)
-    return
     if [ "$project_type" = "web" ]; then
-        run_project_web $project
+        stop_process_web $project
         return
     fi
 
-    echo "🛑 Stopping $process_name..."
     # Check the operating system
     if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "darwin"* ]]; then
         # Linux or Mac OSX
@@ -202,7 +199,7 @@ stop_process() {
 stop_process_web() {
     project=$1
     port=$(yq e ".projects.$project.port" pancake.yml)
-    echo "🛑 Stopping Web $project with port: $port..."
+    echo "🛑 Stopping $project with port: $port..."
     # Check the operating system
     if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "darwin"* ]]; then
         # Linux or Mac OSX
