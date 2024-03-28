@@ -47,8 +47,8 @@ create_directories() {
 
 project_list() {
     echo "📚 Project list:"
-    printf "| %-10s | %-10s | %-20s | %-10s | %-30s |\n" "Name" "Branch" "Last Committer" "Version" "Last Updated"
-    echo "|------------|------------|----------------------|------------|--------------------------------|"
+    printf "| %-10s | %-10s | %-20s | %-25s | %-30s |\n" "Name" "Branch" "Last Committer" "Version" "Last Updated"
+    echo "|------------|------------|----------------------|---------------------------|--------------------------------|"
     # Parse $config_file and list each project
     project_location=$(yq e '.project_location' $config_file)
     for project in $(yq e '.projects | keys | .[]' $config_file); do
@@ -59,9 +59,9 @@ project_list() {
             current_branch=$(git -C "$project_folder" rev-parse --abbrev-ref HEAD)
             last_committer=$(git -C "$project_folder" log -1 --format='%an')
             version=$(git -C "$project_folder" describe --tags --always)
-            printf "| %-10s | %-10s | %-20s | %-10s | %-30s |\n" "$project" "$current_branch" "$last_committer" "$version" "$last_updated"
+            printf "| %-10s | %-10s | %-20s | %-25s | %-30s |\n" "$project" "$current_branch" "$last_committer" "$version" "$last_updated"
         else
-            printf "| %-10s | %-10s | %-20s | %-10s | %-30s |\n" "$project" "-" "-" "-" "-"
+            printf "| %-10s | %-10s | %-20s | %-25s | %-30s |\n" "$project" "-" "-" "-" "-"
         fi
     done
 }
@@ -204,21 +204,21 @@ stop_process() {
     # Check the operating system
     if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "darwin"* ]]; then
         # Linux or Mac OSX
-        pid=$(jps -l | grep "$process_name" | awk '{print $1}')
+        pid=$(jps -l | grep "$project" | awk '{print $1}')
         if [ -n "$pid" ]; then
             kill -9 $pid
-            echo "✅ $process_name stopped successfully."
+            echo "✅ $project stopped successfully."
         else
-            echo "❌ $process_name is not running."
+            echo "❌ $project is not running."
         fi
     elif [[ "$OSTYPE" == "cygwin"* ]] || [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "win32"* ]]; then
         # Windows
-        pid=$(jps -l | findstr "$process_name" | awk '{print $1}')
+        pid=$(jps -l | findstr "$project" | awk '{print $1}')
         if [ -n "$pid" ]; then
             taskkill //PID $pid //F
-            echo "✅ $process_name stopped successfully."
+            echo "✅ $project stopped successfully."
         else
-            echo "❌ $process_name is not running."
+            echo "❌ $project is not running."
         fi
     else
         echo "❌ This OS is not supported."
