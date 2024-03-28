@@ -3,6 +3,32 @@
 # Use the directory to access pancake.yml
 config_file="$(dirname "$0")/pancake.yml"
 
+# Function to check if a path is absolute
+is_absolute_path() {
+    if [[ "$1" == /* ]] || [[ "$1" =~ ^[A-Za-z]:\\ ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Create location variables
+for location in project_location logs_location secret_location override_location; do
+    # If the location is an absolute path, use it as is. Otherwise, make it relative to the script's directory.
+    if is_absolute_path "${!location}"; then
+        declare "${location}_path=${!location}"
+    else
+        declare "${location}_path=$DIR/${!location}"
+    fi
+done
+
+# Print the location variables
+echo "project_location_path: $project_location_path"
+echo "logs_location_path: $logs_location_path"
+echo "secret_location_path: $secret_location_path"
+echo "override_location_path: $override_location_path"
+
+
 # Define the functions
 create_directories() {
     project=$1
@@ -41,12 +67,12 @@ project_list() {
 }
 
 project_sync() {
-    echo "🔄 $(yq e ".projects.$project.github_link" $config_file): Syncing projects... "
+    echo "🔄 : Syncing projects... "
     # Parse $config_file and clone/update each project
     project_location=$(yq e '.project_location' $config_file)
     mkdir -p $project_location
     for project in $(yq e '.projects | keys | .[]' $config_file); do
-        echo "🔄 Syncing $project..."
+        echo "🔄 $(yq e ".projects.$project.github_link" $config_file): Syncing $project..."
         create_directories $project
         project_folder="$project_location/$project"
         mkdir -p $project_folder
@@ -239,11 +265,15 @@ edit_config() {
     elif [[ "$OSTYPE" == "darwin"* ]]; then
         # Mac OSX
         open $config_file && echo $SUCCESS_MSG || echo $FAIL_MSG
+    elif [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
+        # Windows
+        start $config_file && echo $SUCCESS_MSG || echo $FAIL_MSG
     else
         echo $UNSUPPORTED_OS_MSG
         exit 1
     fi
 }
+
 
 help_menu() {
     echo "📖 Pancake Help Menu 📖"
