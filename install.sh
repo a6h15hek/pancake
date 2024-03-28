@@ -77,6 +77,10 @@ source "$PROFILE_FILE"
 # Rename pancake.sh to pancake
 cp "$PANCAKE_PATH" "$(dirname "$PANCAKE_PATH")/pancake"
 
+# Make pancake executable for all users but not readable or writable
+chmod 111 "$(dirname "$PANCAKE_PATH")/pancake"
+
+
 # Check if pancake is installed
 if command -v pancake &> /dev/null
 then
