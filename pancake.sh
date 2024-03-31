@@ -1,12 +1,15 @@
 #!/bin/bash
 
+# Use the directory to access pancake.yml
+config_file="$(dirname "$0")/pancake.yml"
+
 # Define the functions
 create_directories() {
     project=$1
-    # Parse pancake.yml and get the locations
-    logs_location=$(yq e '.logs_location' pancake.yml)
-    secret_location=$(yq e '.secret_location' pancake.yml)
-    override_location=$(yq e '.override_location' pancake.yml)
+    # Parse $config_file and get the locations
+    logs_location=$(yq e '.logs_location' $config_file)
+    secret_location=$(yq e '.secret_location' $config_file)
+    override_location=$(yq e '.override_location' $config_file)
     # Create directories if they do not exist
     for location in "$logs_location/$project" "$secret_location/$project" "$override_location/$project"; do
         if [ ! -d "$location" ]; then
@@ -18,11 +21,11 @@ create_directories() {
 
 project_list() {
     echo "📚 Project list:"
-    printf "| %-10s | %-10s | %-20s | %-10s | %-30s |\n" "Name" "Branch" "Last Committer" "Version" "Last Updated"
-    echo "|------------|------------|----------------------|------------|--------------------------------|"
-    # Parse pancake.yml and list each project
-    project_location=$(yq e '.project_location' pancake.yml)
-    for project in $(yq e '.projects | keys | .[]' pancake.yml); do
+    printf "| %-10s | %-10s | %-20s | %-25s | %-30s |\n" "Name" "Branch" "Last Committer" "Version" "Last Updated"
+    echo "|------------|------------|----------------------|---------------------------|--------------------------------|"
+    # Parse $config_file and list each project
+    project_location=$(yq e '.project_location' $config_file)
+    for project in $(yq e '.projects | keys | .[]' $config_file); do
         # Get the last updated date-time of the project
         project_folder="$project_location/$project"
         if [ -d "$project_folder" ]; then
@@ -30,46 +33,46 @@ project_list() {
             current_branch=$(git -C "$project_folder" rev-parse --abbrev-ref HEAD)
             last_committer=$(git -C "$project_folder" log -1 --format='%an')
             version=$(git -C "$project_folder" describe --tags --always)
-            printf "| %-10s | %-10s | %-20s | %-10s | %-30s |\n" "$project" "$current_branch" "$last_committer" "$version" "$last_updated"
+            printf "| %-10s | %-10s | %-20s | %-25s | %-30s |\n" "$project" "$current_branch" "$last_committer" "$version" "$last_updated"
         else
-            printf "| %-10s | %-10s | %-20s | %-10s | %-30s |\n" "$project" "-" "-" "-" "-"
+            printf "| %-10s | %-10s | %-20s | %-25s | %-30s |\n" "$project" "-" "-" "-" "-"
         fi
     done
 }
 
 project_sync() {
-    echo "🔄 $(yq e ".projects.$project.github_link" pancake.yml): Syncing projects... "
-    # Parse pancake.yml and clone/update each project
-    project_location=$(yq e '.project_location' pancake.yml)
+    echo "🔄 : Syncing projects... "
+    # Parse $config_file and clone/update each project
+    project_location=$(yq e '.project_location' $config_file)
     mkdir -p $project_location
-    for project in $(yq e '.projects | keys | .[]' pancake.yml); do
-        echo "🔄 Syncing $project..."
+    for project in $(yq e '.projects | keys | .[]' $config_file); do
+        echo "🔄 $(yq e ".projects.$project.github_link" $config_file): Syncing $project..."
         create_directories $project
         project_folder="$project_location/$project"
         mkdir -p $project_folder
-        git -C "$project_folder" pull || git clone "$(yq e ".projects.$project.github_link" pancake.yml)" "$project_folder"
+        git -C "$project_folder" pull || git clone "$(yq e ".projects.$project.github_link" $config_file)" "$project_folder"
     done
-    echo "✅ All projects synced successfully."
+    echo "✅ All projects synced."
 }
 
 project_sync_single() {
     project=$1
-    echo "🔄 $(yq e ".projects.$project.github_link" pancake.yml): Syncing $project..."
+    echo "🔄 $(yq e ".projects.$project.github_link" $config_file): Syncing $project..."
     create_directories $project
-    # Parse pancake.yml and clone/update the project
-    project_location=$(yq e '.project_location' pancake.yml)
+    # Parse $config_file and clone/update the project
+    project_location=$(yq e '.project_location' $config_file)
     project_folder="$project_location/$project"
-    git -C "$project_folder" pull || git clone "$(yq e ".projects.$project.github_link" pancake.yml)" "$project_folder"
-    echo "✅ $project synced successfully."
+    git -C "$project_folder" pull || git clone "$(yq e ".projects.$project.github_link" $config_file)" "$project_folder"
+    echo "✅ $project synced."
 }
 
 build_project() {
     project=$1
     echo "🔨 Building $project..."
-    # Parse pancake.yml and get the build command for the project
-    project_location=$(yq e '.project_location' pancake.yml)
+    # Parse $config_file and get the build command for the project
+    project_location=$(yq e '.project_location' $config_file)
     project_folder="$project_location/$project"
-    build_command=$(yq e ".projects.$project.build" pancake.yml)
+    build_command=$(yq e ".projects.$project.build" $config_file)
     if [ "$build_command" != "null" ]; then
         if [ -d "$project_folder" ]; then
             echo "Running in subshell: cd $project_folder && $build_command"
@@ -85,8 +88,8 @@ build_project() {
 
 run_project() {
     project=$1
-    # Parse pancake.yml and get the type of the project
-    project_type=$(yq e ".projects.$project.type" pancake.yml)
+    # Parse $config_file and get the type of the project
+    project_type=$(yq e ".projects.$project.type" $config_file)
     if [ "$project_type" = "web" ]; then
         run_project_web $project
         return
@@ -99,13 +102,13 @@ run_project() {
         return
     fi
     echo "🏃 Running $project..."
-    # Parse pancake.yml and get the run command for the project
-    run_command=$(yq e ".projects.$project.run" pancake.yml)
-    logs_location=$(yq e '.logs_location' pancake.yml)
+    # Parse $config_file and get the run command for the project
+    run_command=$(yq e ".projects.$project.run" $config_file)
+    logs_location=$(yq e '.logs_location' $config_file)
     if [ "$run_command" != "null" ]; then
         # Replace all occurrences of @@variable@ with the value of the variable
-        for variable in $(yq e 'keys | .[]' pancake.yml); do
-            value=$(yq e ".$variable" pancake.yml)
+        for variable in $(yq e 'keys | .[]' $config_file); do
+            value=$(yq e ".$variable" $config_file)
             run_command=${run_command//@$variable@/$value}
         done
         # Replace <project_name> with the actual project name
@@ -121,7 +124,7 @@ run_project() {
 run_project_web() {
     project=$1
     # Check if the process is already running
-    port=$(yq e ".projects.$project.port" pancake.yml)
+    port=$(yq e ".projects.$project.port" $config_file)
     if command -v lsof &> /dev/null; then
         pid=$(lsof -t -i:$port)
     else
@@ -132,15 +135,15 @@ run_project_web() {
         return
     fi
     echo "🏃 Running Web $project..."
-    # Parse pancake.yml and get the run command for the project
-    run_command=$(yq e ".projects.$project.run" pancake.yml)
-    logs_location=$(yq e '.logs_location' pancake.yml)
-    project_location=$(yq e '.project_location' pancake.yml)
+    # Parse $config_file and get the run command for the project
+    run_command=$(yq e ".projects.$project.run" $config_file)
+    logs_location=$(yq e '.logs_location' $config_file)
+    project_location=$(yq e '.project_location' $config_file)
     project_folder="$project_location/$project"
     if [ "$run_command" != "null" ]; then
         # Replace all occurrences of @@variable@ with the value of the variable
-        for variable in $(yq e 'keys | .[]' pancake.yml); do
-            value=$(yq e ".$variable" pancake.yml)
+        for variable in $(yq e 'keys | .[]' $config_file); do
+            value=$(yq e ".$variable" $config_file)
             run_command=${run_command//@$variable@/$value}
         done
         # Replace <project_name> with the actual project name
@@ -165,8 +168,8 @@ stop_process() {
     project=$1
     echo "🛑 Stopping $project..."
 
-    # Parse pancake.yml and get the type of the project
-    project_type=$(yq e ".projects.$project.type" pancake.yml)
+    # Parse $config_file and get the type of the project
+    project_type=$(yq e ".projects.$project.type" $config_file)
     if [ "$project_type" = "web" ]; then
         stop_process_web $project
         return
@@ -175,21 +178,21 @@ stop_process() {
     # Check the operating system
     if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "darwin"* ]]; then
         # Linux or Mac OSX
-        pid=$(jps -l | grep "$process_name" | awk '{print $1}')
+        pid=$(jps -l | grep "$project" | awk '{print $1}')
         if [ -n "$pid" ]; then
             kill -9 $pid
-            echo "✅ $process_name stopped successfully."
+            echo "✅ $project stopped successfully."
         else
-            echo "❌ $process_name is not running."
+            echo "❌ $project is not running."
         fi
     elif [[ "$OSTYPE" == "cygwin"* ]] || [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "win32"* ]]; then
         # Windows
-        pid=$(jps -l | findstr "$process_name" | awk '{print $1}')
+        pid=$(jps -l | findstr "$project" | awk '{print $1}')
         if [ -n "$pid" ]; then
             taskkill //PID $pid //F
-            echo "✅ $process_name stopped successfully."
+            echo "✅ $project stopped successfully."
         else
-            echo "❌ $process_name is not running."
+            echo "❌ $project is not running."
         fi
     else
         echo "❌ This OS is not supported."
@@ -198,7 +201,7 @@ stop_process() {
 
 stop_process_web() {
     project=$1
-    port=$(yq e ".projects.$project.port" pancake.yml)
+    port=$(yq e ".projects.$project.port" $config_file)
     echo "🛑 Stopping $project with port: $port..."
     # Check the operating system
     if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "darwin"* ]]; then
@@ -225,37 +228,74 @@ stop_process_web() {
 }
 
 edit_config() {
-    SUCCESS_MSG="✅ pancake.yml opened successfully."
-    FAIL_MSG="❌ Failed to open pancake.yml."
+    SUCCESS_MSG="✅ $config_file opened successfully."
+    FAIL_MSG="❌ Failed to open $config_file."
     UNSUPPORTED_OS_MSG="❌ This OS is not supported."
 
-    echo "🔧 Opening pancake.yml in the default editor..."
+    echo "🔧 Opening $config_file in the default editor..."
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         # Linux
-        xdg-open pancake.yml && echo $SUCCESS_MSG || echo $FAIL_MSG
+        xdg-open $config_file && echo $SUCCESS_MSG || echo $FAIL_MSG
     elif [[ "$OSTYPE" == "darwin"* ]]; then
         # Mac OSX
-        open pancake.yml && echo $SUCCESS_MSG || echo $FAIL_MSG
+        open $config_file && echo $SUCCESS_MSG || echo $FAIL_MSG
+    elif [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
+        # Windows
+        start $config_file && echo $SUCCESS_MSG || echo $FAIL_MSG
     else
         echo $UNSUPPORTED_OS_MSG
         exit 1
     fi
 }
 
+
 help_menu() {
-    echo "📖 Pancake Help Menu 📖"
-    echo "Here are the available commands:"
-    echo "  pancake project list - List all projects defined in the pancake.yml file."
-    echo "  pancake project sync - Sync all projects defined in the pancake.yml file. This will clone or pull the latest changes from the repositories."
-    echo "  pancake project sync <project_name> - Sync the specified project. This will clone or pull the latest changes from the repository of the specified project."
-    echo "  pancake build <project_name> - Build the specified project. This will run the build command defined in the pancake.yml file for the specified project."
-    echo "  pancake run <project_name> - Run the specified project. This will run the command defined in the run variable in the pancake.yml file for the specified project."
-    echo "  pancake stop <project_name> - Stop the specified project. This will stop the process running the specified project."
-    echo "  pancake status - Check the status of all projects. This will print the status, PID, and start time of the process for each project."
-    echo "  pancake edit config - Open the pancake.yml file in the default editor."
-    echo "  pancake open <project_name> - Open the specified project with the command mentioned in code_editor_command."
+    echo "📖 Pancake Project Management Tool 📖"
+    echo "Pancake is a versatile tool designed to streamline your project management workflow. It simplifies running web and server modules, monitors application status, and offers customizable project locations and override files. Best of all, you can run and open projects from anywhere!"
+    echo ""
+    echo "🌟 Features:"
+    echo "1. Simplifies running web and server modules."
+    echo "2. Monitors all running and non-running applications."
+    echo "3. Customizable project locations and override files."
+    echo "4. Runs and opens projects from anywhere."
+    echo ""
+    commands=(
+        "pancake project list"
+        "pancake project sync"
+        "pancake project sync <project_name>"
+        "pancake build <project_name>"
+        "pancake run <project_name>"
+        "pancake stop <project_name>"
+        "pancake status"
+        "pancake edit config"
+        "pancake open <project_name>"
+    )
+    descriptions=(
+        "List all projects defined in the pancake.yml file."
+        "Sync all projects. This clones or pulls the latest changes from the repositories."
+        "Sync the specified project. This clones or pulls the latest changes from the repository of the specified project."
+        "Build the specified project. This runs the build command defined in the pancake.yml file for the specified project."
+        "Run the specified project. This runs the command defined in the run variable in the pancake.yml file for the specified project."
+        "Stop the specified project. This stops the process running the specified project."
+        "Check the status of all projects. This prints the status, PID, and start time of the process for each project."
+        "Open the pancake.yml file in the default editor."
+        "Open the specified project with the command mentioned in code_editor_command."
+    )
+    printf "| %-35s | %-127s |\n" "Command " "Description"
+    printf "|%s|%s|\n" "-------------------------------------" "---------------------------------------------------------------------------------------------------------------------------------"
+    for i in "${!commands[@]}"; do
+        printf "| %-35s | %-127s |\n" "${commands[$i]}" "${descriptions[$i]}"
+    done
+    echo ""
+    echo "💡 Usage:"
+    echo "pancake [command]"
+    echo ""
+    echo "👨‍💻 Developer: Yadav, Abhishek - http://github.com/a6h15hek"
+    echo ""
     echo "Please replace <project_name> with the name of your project."
 }
+
+
 
 status_project() {
     # Print the table header
@@ -270,16 +310,17 @@ status_project() {
         get_port_cmd="netstat -tuln | grep \"\$pid\" | awk '{print \$4}' | cut -d':' -f2"
     fi
 
-    # Parse pancake.yml and loop through each project
-    for project in $(yq e '.projects | keys | .[]' pancake.yml); do
+    # Parse $config_file and loop through each project
+    for project in $(yq e '.projects | keys | .[]' $config_file); do
         # Check if the process is running
-        project_type=$(yq e ".projects.$project.type" pancake.yml)
+        project_type=$(yq e ".projects.$project.type" $config_file)
         if [ "$project_type" = "web" ]; then
-            port=$(yq e ".projects.$project.port" pancake.yml)
-            if command -v lsof &> /dev/null; then
+            port=$(yq e ".projects.$project.port" $config_file)
+            if ! command -v lsof &> /dev/null; then
                 pid=$(lsof -t -i:$port -sTCP:LISTEN)
             else
-                pid=$(netstat -tuln | grep ":$port " | awk '{print $7}' | cut -d'/' -f1)
+                # Windows
+                pid=$(netstat -ano | findstr :$port | awk '{print $5}')
             fi
         else
             pid=$(jps -l | grep "$project" | awk '{print $1}')
@@ -326,14 +367,19 @@ status_project() {
 open_project() {
     project=$1
     echo "📂 Opening $project..."
-    # Parse pancake.yml and get the code editor command and project location
-    code_editor_command=$(yq e '.code_editor_command' pancake.yml)
-    project_location=$(yq e '.project_location' pancake.yml)
+    # Parse $config_file and get the code editor command and project location
+    code_editor_command=$(yq e '.code_editor_command' $config_file)
+    project_location=$(yq e '.project_location' $config_file)
+    # Prepare the command
+    command_to_run="$code_editor_command $project_location/$project"
+    echo "🔨 Running command: $command_to_run"
     # Open the project with the code editor command
-    $code_editor_command "$project_location/$project"
-    echo "✅ $project opened successfully."
+    if $command_to_run ; then
+        echo "✅ $project opened successfully."
+    else
+        echo "❌ Error: Failed to open $project."
+    fi
 }
-
 
 # Check the number of arguments and switch between different functions
 if [ "$#" -eq 0 ]; then
@@ -352,8 +398,8 @@ elif [ "$1" = "project" ]; then
         echo "❌ Invalid second argument for project: $2"
         exit 1
     fi
-elif [ "$1" = "edit" ]; then
-    if [ "$2" = "config" ]; then
+elif [ "$1" = "config" ]; then
+    if [ "$2" = "edit" ]; then
         edit_config
     else
         echo "❌ Invalid second argument for edit: $2"
