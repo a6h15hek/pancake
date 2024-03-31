@@ -385,8 +385,8 @@ elif [ "$1" = "project" ]; then
         echo "❌ Invalid second argument for project: $2"
         exit 1
     fi
-elif [ "$1" = "edit" ]; then
-    if [ "$2" = "config" ]; then
+elif [ "$1" = "config" ]; then
+    if [ "$2" = "edit" ]; then
         edit_config
     else
         echo "❌ Invalid second argument for edit: $2"
