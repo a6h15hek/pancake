@@ -281,10 +281,10 @@ help_menu() {
         "Open the pancake.yml file in the default editor."
         "Open the specified project with the command mentioned in code_editor_command."
     )
-    printf "| %-35s | %-130s |\n" "Command " "Description"
-    printf "|%s|%s|\n" "-------------------------------------" "------------------------------------------------------------------------------------------------------------------------------------"
+    printf "| %-35s | %-127s |\n" "Command " "Description"
+    printf "|%s|%s|\n" "-------------------------------------" "---------------------------------------------------------------------------------------------------------------------------------"
     for i in "${!commands[@]}"; do
-        printf "| %-35s | %-130s |\n" "${commands[$i]}" "${descriptions[$i]}"
+        printf "| %-35s | %-127s |\n" "${commands[$i]}" "${descriptions[$i]}"
     done
     echo ""
     echo "💡 Usage:"
