@@ -343,21 +343,21 @@ status_project() {
                 else
                     start_time="Unknown"
                 fi
-                start_times="$start_times\n$start_time"
+                start_times="$start_times$(printf '\n')$start_time"
                 # Get the port that the process is listening on
                 ports=$(eval $get_port_cmd)
-                for port in $ports; do
-                    if [ -n "$port" ]; then
+                if [ -z "$ports" ]; then
+                    urls="$urls$(printf '\n')-"
+                else
+                    for port in $ports; do
                         url="http://localhost:$port"
-                    else
-                        url="-"
-                    fi
-                    urls="$urls\n$url"
-                done
+                        urls="$urls$(printf '\n')$url"
+                    done
+                fi
             done
             # If you want to remove the trailing newline
-            start_times=${start_times#\\n}
-            urls=${urls#\\n}
+            start_times=${start_times#$(printf '\n')}
+            urls=${urls#$(printf '\n')}
         else
             status="Not running"
             pids="-"
@@ -368,6 +368,7 @@ status_project() {
         printf "| %-10s | %-12s | %-5s | %-30s | %-30s |\n" "$project" "$status" "$pids" "$start_times" "$urls"
     done
 }
+
 
 
 open_project() {
