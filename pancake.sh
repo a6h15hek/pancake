@@ -328,8 +328,8 @@ status_project() {
         if [ -n "$pids" ]; then
             status="Running"
             # Get the start time of the process
-            start_times=()
-            urls=()
+            declare -A start_times
+            declare -A urls
             for pid in $pids; do
                 if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "darwin"* ]]; then
                     # Linux or Mac OSX
@@ -341,17 +341,18 @@ status_project() {
                 else
                     start_time="Unknown"
                 fi
-                start_times+=("$start_time")
+                start_times["$pid"]="$start_time"
                 # Get the port that the process is listening on
                 ports=$(eval $get_port_cmd)
                 if [ -z "$ports" ]; then
-                    urls+=("-")
+                    urls["$pid"]="-"
                 else
                     url_array=()
                     for port in $ports; do
-                        url_array+=("$port")
+                        url="http://localhost:$port"
+                        url_array+=("$url")
                     done
-                    urls+=("${url_array[@]}")
+                    urls["$pid"]="${url_array[*]}"
                 fi
             done
         else
@@ -363,18 +364,18 @@ status_project() {
         # Print the project status in a formatted table
         IFS=$'\n'
         pids=($pids)
-        for i in "${!pids[@]}"; do
+        for pid in "${pids[@]}"; do
             if [ "$status" = "Running" ]; then
-                for j in "${!urls[i][@]}"; do
-                    printf "| %-10s | %-12s | %-5s | %-30s | %-30s |\n" "$project" "$status" "${pids[$i]}" "${start_times[$i]}" "${urls[i][$j]}"
+                IFS=' ' read -ra url_array <<< "${urls[$pid]}"
+                for url in "${url_array[@]}"; do
+                    printf "| %-10s | %-12s | %-5s | %-30s | %-30s |\n" "$project" "$status" "$pid" "${start_times[$pid]}" "$url"
                 done
             else
-                printf "| %-10s | %-12s | %-5s | %-30s | %-30s |\n" "$project" "$status" "${pids[$i]}" "${start_times[$i]}" "${urls[$i]}"
+                printf "| %-10s | %-12s | %-5s | %-30s | %-30s |\n" "$project" "$status" "$pid" "${start_times[$pid]}" "${urls[$pid]}"
             fi
         done
     done
 }
-
 
 
 open_project() {
