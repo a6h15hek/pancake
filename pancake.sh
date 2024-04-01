@@ -128,7 +128,7 @@ run_project_web() {
     if command -v lsof &> /dev/null; then
         pid=$(lsof -t -i:$port)
     else
-        pid=$(netstat -tuln | grep ":$port " | awk '{print $7}' | cut -d'/' -f1)
+        pid=$(netstat -ano | awk -v port="$port" 'BEGIN{FS=" "}{split($2,a,":"); if (a[2] == port) print $5}' | head -n 1)
     fi
     if [ -n "$pid" ]; then
         echo "⚠️ $project is already running with PID $pid."
@@ -157,7 +157,7 @@ run_project_web() {
         #     run_command="PORT=$port $run_command"
         # fi
         echo "Running in subshell: cd $project_folder && $run_command"
-        (cd "$project_folder" && nohup $run_command > "../../$logs_location/$project/start.log" 2>&1 &)
+        (cd "$project_folder" && nohup $run_command > "$logs_location/$project/start.log" 2>&1 &)
         echo "✅ $project run successfully. Logs are saved in $logs_location/$project/start.log."
     else
         echo "❌ Run variable not exists. Cannot run the project."
@@ -215,7 +215,7 @@ stop_process_web() {
         fi
     elif [[ "$OSTYPE" == "cygwin"* ]] || [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "win32"* ]]; then
         # Windows
-        pid=$(netstat -ano | findstr :$port | awk '{print $5}')
+        pid=$(netstat -ano | awk -v port="$port" 'BEGIN{FS=" "}{split($2,a,":"); if (a[2] == port) print $5}' | head -n 1)
         if [ -n "$pid" ]; then
             taskkill //PID $pid //F
             echo "✅ $project stopped successfully."
@@ -295,8 +295,6 @@ help_menu() {
     echo "Please replace <project_name> with the name of your project."
 }
 
-
-
 status_project() {
     # Print the table header
     echo "📊 Status of Projects:"
@@ -307,7 +305,7 @@ status_project() {
     if command -v lsof &> /dev/null; then
         get_port_cmd="lsof -Pan -p \$pid -iTCP -sTCP:LISTEN | awk '{if (NR>1) print \$9}' | cut -d':' -f2"
     else
-        get_port_cmd="netstat -tuln | grep \"\$pid\" | awk '{print \$4}' | cut -d':' -f2"
+        get_port_cmd="netstat -ano | awk -v pid=\"\$pid\" '{if (\$5 == pid) print \$2}' | awk 'BEGIN{FS=\":\"}{print \$2}' | head -n 1"
     fi
 
     # Parse $config_file and loop through each project
@@ -316,11 +314,11 @@ status_project() {
         project_type=$(yq e ".projects.$project.type" $config_file)
         if [ "$project_type" = "web" ]; then
             port=$(yq e ".projects.$project.port" $config_file)
-            if ! command -v lsof &> /dev/null; then
+            if command -v lsof &> /dev/null; then
                 pid=$(lsof -t -i:$port -sTCP:LISTEN)
             else
                 # Windows
-                pid=$(netstat -ano | findstr :$port | awk '{print $5}')
+                pid=$(netstat -ano | awk -v port="$port" 'BEGIN{FS=" "}{split($2,a,":"); if (a[2] == port) print $5}' | head -n 1)
             fi
         else
             pid=$(jps -l | grep "$project" | awk '{print $1}')
