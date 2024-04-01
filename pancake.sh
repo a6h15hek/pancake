@@ -309,6 +309,7 @@ status_project() {
     fi
 
     # Parse $config_file and loop through each project
+    declare -A printed_rows
     for project in $(yq e '.projects | keys | .[]' $config_file); do
         # Check if the process is running
         project_type=$(yq e ".projects.$project.type" $config_file)
@@ -367,10 +368,18 @@ status_project() {
             if [ "$status" = "Running" ]; then
                 IFS=' ' read -ra url_array <<< "${urls[$pid]}"
                 for url in "${url_array[@]}"; do
-                    printf "| %-10s | %-12s | %-5s | %-30s | %-30s |\n" "$project" "$status" "$pid" "${start_times[$pid]}" "$url"
+                    row="| %-10s | %-12s | %-5s | %-30s | %-30s |\n" "$project" "$status" "$pid" "${start_times[$pid]}" "$url"
+                    if [ -z "${printed_rows[$row]}" ]; then
+                        printf "$row"
+                        printed_rows["$row"]=1
+                    fi
                 done
             else
-                printf "| %-10s | %-12s | %-5s | %-30s | %-30s |\n" "$project" "$status" "$pid" "${start_times[$pid]}" "${urls[$pid]}"
+                row="| %-10s | %-12s | %-5s | %-30s | %-30s |\n" "$project" "$status" "$pid" "${start_times[$pid]}" "${urls[$pid]}"
+                if [ -z "${printed_rows[$row]}" ]; then
+                    printf "$row"
+                    printed_rows["$row"]=1
+                fi
             fi
         done
     done
