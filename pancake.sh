@@ -295,8 +295,6 @@ help_menu() {
     echo "Please replace <project_name> with the name of your project."
 }
 
-
-
 status_project() {
     # Print the table header
     echo "📊 Status of Projects:"
@@ -365,10 +363,15 @@ status_project() {
             urls="-"
         fi
         # Print the project status in a formatted table
-        printf "| %-10s | %-12s | %-5s | %-30s | %-30s |\n" "$project" "$status" "$pids" "$start_times" "$urls"
+        IFS=$'\n'
+        pids=($pids)
+        start_times=($start_times)
+        urls=($urls)
+        for i in "${!pids[@]}"; do
+            printf "| %-10s | %-12s | %-5s | %-30s | %-30s |\n" "$project" "$status" "${pids[$i]}" "${start_times[$i]}" "${urls[$i]}"
+        done
     done
 }
-
 
 
 open_project() {
