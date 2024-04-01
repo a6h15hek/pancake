@@ -316,7 +316,7 @@ status_project() {
         project_type=$(yq e ".projects.$project.type" $config_file)
         if [ "$project_type" = "web" ]; then
             port=$(yq e ".projects.$project.port" $config_file)
-            if ! command -v lsof &> /dev/null; then
+            if command -v lsof &> /dev/null; then
                 pid=$(lsof -t -i:$port -sTCP:LISTEN)
             else
                 # Windows
