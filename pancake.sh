@@ -298,90 +298,66 @@ help_menu() {
 status_project() {
     # Print the table header
     echo "📊 Status of Projects:"
-    printf "| %-10s | %-12s | %-5s | %-30s | %-30s |\n" "Project" "Status" "PIDs" "Start Times" "URLs"
+    printf "| %-10s | %-12s | %-5s | %-30s | %-30s |\n" "Project" "Status" "PID" "Start Time" "URL"
     printf "|%s|%s|%s|%s|%s|\n" "------------" "--------------" "-------" "--------------------------------" "--------------------------------"
     
     # Check if lsof is installed
     if command -v lsof &> /dev/null; then
-        get_port_cmd="lsof -Pan -p \$pid -iTCP -sTCP:LISTEN | awk '{if (NR>1) print \$9}'"
+        get_port_cmd="lsof -Pan -p \$pid -iTCP -sTCP:LISTEN | awk '{if (NR>1) print \$9}' | cut -d':' -f2"
     else
         get_port_cmd="netstat -ano | awk -v pid=\"\$pid\" '{if (\$5 == pid) print \$2}' | awk 'BEGIN{FS=\":\"}{print \$2}' | head -n 1"
     fi
 
     # Parse $config_file and loop through each project
-    declare -A printed_rows
     for project in $(yq e '.projects | keys | .[]' $config_file); do
         # Check if the process is running
         project_type=$(yq e ".projects.$project.type" $config_file)
         if [ "$project_type" = "web" ]; then
             port=$(yq e ".projects.$project.port" $config_file)
-            if command -v lsof &> /dev/null; then
-                pids=$(lsof -t -i:$port -sTCP:LISTEN)
+            if ! command -v lsof &> /dev/null; then
+                pid=$(lsof -t -i:$port -sTCP:LISTEN)
             else
                 # Windows
                 pids=$(netstat -ano | awk -v port="$port" 'BEGIN{FS=" "}{split($2,a,":"); if (a[2] == port) {split($5,b,""); print b[1]}}')
             fi
         else
-            pids=$(jps -l | grep "$project" | awk '{print $1}')
+            pid=$(jps -l | grep "$project" | awk '{print $1}')
         fi
         # echo "📊 Status of $project: $pid"
         # continue
-        if [ -n "$pids" ]; then
+        if [ -n "$pid" ]; then
             status="Running"
             # Get the start time of the process
-            declare -A start_times
-            declare -A urls
-            for pid in $pids; do
-                if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "darwin"* ]]; then
-                    # Linux or Mac OSX
-                    start_time=$(ps -p $pid -o lstart=)
-                elif [[ "$OSTYPE" == "cygwin"* ]] || [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "win32"* ]]; then
-                    # Windows
-                    start_time=$(wmic process where "processid=$pid" get CreationDate | grep -v "CreationDate" | tr -d '[:space:]')
-                    start_time=$(date -d "${start_time:0:4}-${start_time:4:2}-${start_time:6:2} ${start_time:8:2}:${start_time:10:2}:${start_time:12:2}" +"%a %b %d %T %Y")
-                else
-                    start_time="Unknown"
-                fi
-                start_times["$pid"]="$start_time"
-                # Get the port that the process is listening on
-                ports=$(eval $get_port_cmd)
-                if [ -z "$ports" ]; then
-                    urls["$pid"]="-"
-                else
-                    url_array=()
-                    for port in $ports; do
-                        url_array+=("$port")
-                    done
-                    urls["$pid"]="${url_array[*]}"
-                fi
-            done
+            if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "darwin"* ]]; then
+                # Linux or Mac OSX
+                start_time=$(ps -p $pid -o lstart=)
+            elif [[ "$OSTYPE" == "cygwin"* ]] || [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "win32"* ]]; then
+                # Windows
+                start_time=$(wmic process where "processid=$pid" get CreationDate | grep -v "CreationDate" | tr -d '[:space:]')
+                start_time=$(date -d "${start_time:0:4}-${start_time:4:2}-${start_time:6:2} ${start_time:8:2}:${start_time:10:2}:${start_time:12:2}" +"%a %b %d %T %Y")
+            else
+                start_time="Unknown"
+            fi
+            # Get the port that the process is listening on
+            port=$(eval $get_port_cmd)
+            comma_sperated_ports=$(echo "$port" | tr '\n' ',')
+
+            # If you want to remove the trailing comma
+            comma_sperated_ports=${comma_sperated_ports%?}
+
+            if [ -n "$comma_sperated_ports" ]; then
+                url="http://localhost:$comma_sperated_ports"
+            else
+                url="-"
+            fi
         else
             status="Not running"
-            pids="-"
-            start_times="-"
-            urls="-"
+            pid="-"
+            start_time="-"
+            url="-"
         fi
         # Print the project status in a formatted table
-        IFS=$'\n'
-        pids=($pids)
-        for pid in "${pids[@]}"; do
-            if [ "$status" = "Running" ]; then
-                IFS=' ' read -ra url_array <<< "${urls[$pid]}"
-                for url in "${url_array[@]}"; do
-                    row="| %-10s | %-12s | %-5s | %-30s | %-30s |\n" "$project" "$status" "$pid" "${start_times[$pid]}" "$url"
-                    if [ -z "${printed_rows[$row]}" ]; then
-                        printf "$row"
-                        printed_rows["$row"]=1
-                    fi
-                done
-            else
-                row="| %-10s | %-12s | %-5s | %-30s | %-30s |\n" "$project" "$status" "$pid" "${start_times[$pid]}" "${urls[$pid]}"
-                if [ -z "${printed_rows[$row]}" ]; then
-                    printf "$row"
-                    printed_rows["$row"]=1
-                fi
-            fi
-        done
+        printf "| %-10s | %-12s | %-5s | %-30s | %-30s |\n" "$project" "$status" "$pid" "$start_time" "$url"
     done
 }
 
