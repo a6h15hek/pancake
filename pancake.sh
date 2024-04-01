@@ -349,8 +349,7 @@ status_project() {
                 else
                     url_array=()
                     for port in $ports; do
-                        url="http://localhost:$port"
-                        url_array+=("$url")
+                        url_array+=("$port")
                     done
                     urls["$pid"]="${url_array[*]}"
                 fi
