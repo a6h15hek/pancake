@@ -305,9 +305,9 @@ status_project() {
     
     # Check if lsof is installed
     if command -v lsof &> /dev/null; then
-        get_port_cmd="lsof -Pan -p \$pid -iTCP -sTCP:LISTEN | awk '{if (NR>1) print \$9}' | cut -d':' -f2"
+        get_port_cmd="lsof -Pan -p \$pid -iTCP -sTCP:LISTEN | awk '{if (NR>1) print \$9}'"
     else
-        get_port_cmd="netstat -tuln | grep \"\$pid\" | awk '{print \$4}' | cut -d':' -f2"
+        get_port_cmd="netstat -ano | findstr \"\$pid\" | awk '{print \$2}'"
     fi
 
     # Parse $config_file and loop through each project
