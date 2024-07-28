@@ -1,7 +1,4 @@
-project_location: projects
-logs_location: logs
-secret_location: secrets
-override_location: overrides
+project_location: /Users/unicorn/Projects/pancakeProjects
 code_editor_command: idea
 projects:
   project1:
@@ -13,4 +10,6 @@ projects:
   project2:
     github_link: https://github.com/paulczar/spring-helloworld
     build: mvn clean install 
-    run: java -Dprocess.name=<project_name> -jar @project_location@/<project_name>/target/*.jar > @project_location@/<project_name>/start.log 2>&1 &
+    run: |
+    java -Dprocess.name=<project_name> -jar 
+    @project_location@/<project_name>/target/*.jar > @project_location@/logs/<project_name>/start.log 2>&1 &
