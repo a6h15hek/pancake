@@ -18,19 +18,19 @@ package cmd
 import (
     "fmt"
     "os"
-    constants "github.com/a6h15hek/pancake/utils"
+    "github.com/a6h15hek/pancake/utils"
     "github.com/spf13/cobra"
 )
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
     Use:   "pancake",
-    Short: constants.Description,
-    Long:  constants.LongDescription,
+    Short: utils.Description,
+    Long:  utils.LongDescription,
 }
 
-func version() { fmt.Println("Pancake " + constants.Version) }
-func editConfig() { fmt.Println(constants.NotImplemented) }
+func version() { fmt.Println("Pancake " + utils.Version) }
+func editConfig() { fmt.Println(utils.NotImplemented) }
 
 func Execute() {
     err := rootCmd.Execute()

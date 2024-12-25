@@ -17,7 +17,7 @@ package cmd
 
 import (
     "fmt"
-    constants "github.com/a6h15hek/pancake/utils"
+    "github.com/a6h15hek/pancake/utils"
     "github.com/spf13/cobra"
 )
 
@@ -25,44 +25,44 @@ import (
 var projectCmd = &cobra.Command{
     Use:   "project",
     Run: func(cmd *cobra.Command, args []string) {
-        fmt.Println(constants.NotImplemented)
+        fmt.Println(utils.NotImplemented)
     },
 }
 
 func addProject(name string) {
-    fmt.Println(constants.NotImplemented)
+    fmt.Println(utils.NotImplemented)
 }
 
 func removeProject(name string) {
-    fmt.Println(constants.NotImplemented)
+    fmt.Println(utils.NotImplemented)
 }
 
 func listProjects() {
-    fmt.Println(constants.NotImplemented)
+    fmt.Println(utils.NotImplemented)
 }
 
 func syncProjects(name string) {
-    fmt.Println(constants.NotImplemented)
+    fmt.Println(utils.NotImplemented)
 }
 
 func openProject(name string) {
-    fmt.Println(constants.NotImplemented)
+    fmt.Println(utils.NotImplemented)
 }
 
 func buildProject(name string) {
-    fmt.Println(constants.NotImplemented)
+    fmt.Println(utils.NotImplemented)
 }
 
 func startProject(name string) {
-    fmt.Println(constants.NotImplemented)
+    fmt.Println(utils.NotImplemented)
 }
 
 func stopProject(name string) {
-    fmt.Println(constants.NotImplemented)
+    fmt.Println(utils.NotImplemented)
 }
 
 func monitorProject() {
-    fmt.Println(constants.NotImplemented)
+    fmt.Println(utils.NotImplemented)
 }
 
 func init() {

@@ -17,7 +17,7 @@ package cmd
 
 import (
     "fmt"
-    constants "github.com/a6h15hek/pancake/utils"
+    "github.com/a6h15hek/pancake/utils"
     "github.com/spf13/cobra"
 )
 
@@ -25,28 +25,24 @@ import (
 var toolCmd = &cobra.Command{
     Use:   "tool",
     Run: func(cmd *cobra.Command, args []string) {
-        fmt.Println(constants.NotImplemented)
+        fmt.Println(utils.NotImplemented)
     },
 }
 
 func installTool(name string) {
-    fmt.Println(constants.NotImplemented)
+    fmt.Println(utils.NotImplemented)
 }
 
 func uninstallTool(name string) {
-    fmt.Println(constants.NotImplemented)
+    fmt.Println(utils.NotImplemented)
 }
 
 func listTools() {
-    fmt.Println(constants.NotImplemented)
+    fmt.Println(utils.NotImplemented)
 }
 
 func updateTool(name string) {
-    fmt.Println(constants.NotImplemented)
-}
-
-func updateAllTools() {
-    fmt.Println(constants.NotImplemented)
+    fmt.Println(utils.NotImplemented)
 }
 
 func init() {
@@ -60,7 +56,7 @@ func init() {
             if len(args) > 0 {
                 updateTool(args[0])
             } else {
-                updateAllTools()
+                updateTool("")
             }
         }},
     )
