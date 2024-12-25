@@ -1,12 +1,36 @@
-# Pancake Project Management Tool 
+# Pancake: Developer Command Line Tool to Manage Projects
 
-Pancake is a versatile tool designed to streamline your project management workflow. It simplifies running web and server modules, monitors application status, and offers customizable project locations and override files. Best of all, you can run and open projects from anywhere!
+Pancake is a command line tool designed to streamline your project management workflow. It simplifies and makes it easy to sync multiple projects from remote repositories, helps in building and running projects on a local machine, and allows for the installation, uninstallation, and updating of development software and tools. 
+
+```bash
+pancake list                  # View list of all projects you are working on
+pancake sync                  # Sync multiple projects from the remote repository 
+pancake build <project_name>  # Build a project
+pancake start <project_name>  # Start a project on the local machine
+pancake monitor               # Show details about the port, process PID, and uptime
+pancake stop <project_name>   # Stop a project
+```
+It keeps all project files and tools in one place and stores all configurations in the pancake.yml file. Sharing this single file enables the sharing of your entire developer setup, making backups and migration from one machine to another easy.
+
+For migration and sharing projects, just copy pancake.yml to your user home location and run:
+```bash
+pancake init
+```
+Everything your project needs will be installed. All the build and run configurations will already be in the configuration file, and it will sync the project from your remote repository all at once.
+
+
+Another feature in development is Pancake GPT, which allows users to write commands in natural language and convert them into actual commands. It utilizes GPT models to understand the user's natural language input, interpret it, create a corresponding command, and execute it.
+
+```bash
+pancake gpt <user_description_of_command>
+```
 
 ## Features:
-1. Simplifies running web and server modules.
-2. Monitors all running and non-running applications.
-3. Customizable project locations and override files.
-4. Runs and opens projects from anywhere.
+1. Single location for all configuration and project files
+2. Consistent set of commands across operating systems
+3. Simplified commands for running and building projects with single commands and writing configurations only once
+
+## Project Structure
 
 ```bash
 pancake/
@@ -38,7 +62,7 @@ Use the command `pancake [command]`. Replace `<project_name>` with the name of y
 | pancake edit config | Open the pancake.yml file in the default editor. |
 | pancake open <project_name> | Open the specified project with the command mentioned in code_editor_command. |
 
-## Installation
+## Running the project
 
 ```bash
 go build
@@ -74,7 +98,6 @@ projects:
 
 ```
 
-## 👨‍💻 Developer: Yadav, Abhishek - GitHub
-Thank you for visiting Pancake repo ! If you have any questions or need further assistance, feel free to ask.
+Thank you for visiting the Pancake repository! Feel free to fork and 🌟 the repository!
 
 

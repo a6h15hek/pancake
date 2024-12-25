@@ -1,16 +1,31 @@
-# .gitignore
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.bin
+*.run
 
-# Ignore node_modules directory
-projects/
-logs/
-secrets/
-overrides/
+# Build artifacts
+/_output/
+/bin/
+/pkg/
+/vendor/
 
-# Ignore files 
-pancake
-
-# Ignore IDE specific files
-.idea/
+# IDE specific files
 .vscode/
+.idea/
 *.swp
-*.swo
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Go-specific files
+*.test
+coverage.out
+
+# Misc
+node_modules/
+.env

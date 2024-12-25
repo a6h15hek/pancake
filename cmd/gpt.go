@@ -31,7 +31,7 @@ and execute it.
 var gptCmd = &cobra.Command{
     Use:   "gpt",
     Run: func(cmd *cobra.Command, args []string) {
-        fmt.Println("gpt called")
+        fmt.Println(utils.NotImplemented)
     },
 }
 
