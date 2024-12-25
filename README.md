@@ -10,6 +10,8 @@ Pancake is a versatile tool designed to streamline your project management workf
 
 ```bash
 pancake/
+├── utils/
+│   ├── constants.go
 ├── cmd/
 │   ├── root.go
 │   ├── project.go

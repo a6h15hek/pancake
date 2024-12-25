@@ -17,38 +17,36 @@ package cmd
 
 import (
     "fmt"
-
+    constants "github.com/a6h15hek/pancake/utils"
     "github.com/spf13/cobra"
 )
 
 // toolCmd represents the tool command
 var toolCmd = &cobra.Command{
     Use:   "tool",
-    Short: "A CLI command for managing tools",
-    Long: `A CLI command for managing tools. This command offers various subcommands to handle different aspects of tool management, including installing, uninstalling, listing, and updating tools.`,
     Run: func(cmd *cobra.Command, args []string) {
-        fmt.Println("tool called")
+        fmt.Println(constants.NotImplemented)
     },
 }
 
 func installTool(name string) {
-    fmt.Println("Soon to be implemented")
+    fmt.Println(constants.NotImplemented)
 }
 
 func uninstallTool(name string) {
-    fmt.Println("Soon to be implemented")
+    fmt.Println(constants.NotImplemented)
 }
 
 func listTools() {
-    fmt.Println("Soon to be implemented")
+    fmt.Println(constants.NotImplemented)
 }
 
 func updateTool(name string) {
-    fmt.Println("Soon to be implemented")
+    fmt.Println(constants.NotImplemented)
 }
 
 func updateAllTools() {
-    fmt.Println("Soon to be implemented")
+    fmt.Println(constants.NotImplemented)
 }
 
 func init() {
@@ -66,14 +64,4 @@ func init() {
             }
         }},
     )
-
-    // Here you will define your flags and configuration settings.
-
-    // Cobra supports Persistent Flags which will work for this command
-    // and all subcommands, e.g.:
-    // toolCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-    // Cobra supports local flags which will only run when this command
-    // is called directly, e.g.:
-    // toolCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

@@ -17,53 +17,52 @@ package cmd
 
 import (
     "fmt"
+    constants "github.com/a6h15hek/pancake/utils"
     "github.com/spf13/cobra"
 )
 
 // projectCmd represents the project command
 var projectCmd = &cobra.Command{
     Use:   "project",
-    Short: "A CLI command for managing projects",
-    Long: `A CLI command for managing projects. This command offers various subcommands to handle different aspects of project management, including adding, removing, listing, syncing, opening, building, starting, stopping, and monitoring projects.`,
     Run: func(cmd *cobra.Command, args []string) {
-        fmt.Println("project called")
+        fmt.Println(constants.NotImplemented)
     },
 }
 
 func addProject(name string) {
-    fmt.Println("Soon to be implemented")
+    fmt.Println(constants.NotImplemented)
 }
 
 func removeProject(name string) {
-    fmt.Println("Soon to be implemented")
+    fmt.Println(constants.NotImplemented)
 }
 
 func listProjects() {
-    fmt.Println("Soon to be implemented")
+    fmt.Println(constants.NotImplemented)
 }
 
 func syncProjects(name string) {
-    fmt.Println("Soon to be implemented")
+    fmt.Println(constants.NotImplemented)
 }
 
 func openProject(name string) {
-    fmt.Println("Soon to be implemented")
+    fmt.Println(constants.NotImplemented)
 }
 
 func buildProject(name string) {
-    fmt.Println("Soon to be implemented")
+    fmt.Println(constants.NotImplemented)
 }
 
 func startProject(name string) {
-    fmt.Println("Soon to be implemented")
+    fmt.Println(constants.NotImplemented)
 }
 
 func stopProject(name string) {
-    fmt.Println("Soon to be implemented")
+    fmt.Println(constants.NotImplemented)
 }
 
 func monitorProject() {
-    fmt.Println("Soon to be implemented")
+    fmt.Println(constants.NotImplemented)
 }
 
 func init() {
