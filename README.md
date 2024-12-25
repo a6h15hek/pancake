@@ -8,6 +8,18 @@ Pancake is a versatile tool designed to streamline your project management workf
 3. Customizable project locations and override files.
 4. Runs and opens projects from anywhere.
 
+```bash
+pancake/
+├── cmd/
+│   ├── root.go
+│   ├── project.go
+│   ├── tools.go
+│   ├── common.go
+├── main.go
+├── pancake.yml
+├── go.mod
+└── go.sum
+```
 ## Usage:
 Use the command `pancake [command]`. Replace `<project_name>` with the name of your project.
 
