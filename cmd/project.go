@@ -29,11 +29,11 @@ var projectCmd = &cobra.Command{
     },
 }
 
-func addProject(name string) {
+func addProject(args []string) {
     fmt.Println(utils.NotImplemented)
 }
 
-func removeProject(name string) {
+func removeProject(args []string) {
     fmt.Println(utils.NotImplemented)
 }
 
@@ -41,23 +41,23 @@ func listProjects() {
     fmt.Println(utils.NotImplemented)
 }
 
-func syncProjects(name string) {
+func syncProjects(args []string) {
     fmt.Println(utils.NotImplemented)
 }
 
-func openProject(name string) {
+func openProject(args []string) {
     fmt.Println(utils.NotImplemented)
 }
 
-func buildProject(name string) {
+func buildProject(args []string) {
     fmt.Println(utils.NotImplemented)
 }
 
-func startProject(name string) {
+func startProject(args []string) {
     fmt.Println(utils.NotImplemented)
 }
 
-func stopProject(name string) {
+func stopProject(args []string) {
     fmt.Println(utils.NotImplemented)
 }
 
@@ -69,14 +69,14 @@ func init() {
     rootCmd.AddCommand(projectCmd)
 
     projectCmd.AddCommand(
-        &cobra.Command{Use: "add", Run: func(cmd *cobra.Command, args []string) { addProject(args[0]) }},
-        &cobra.Command{Use: "remove", Run: func(cmd *cobra.Command, args []string) { removeProject(args[0]) }},
+        &cobra.Command{Use: "add", Run: func(cmd *cobra.Command, args []string) { addProject(args) }},
+        &cobra.Command{Use: "remove", Run: func(cmd *cobra.Command, args []string) { removeProject(args) }},
         &cobra.Command{Use: "list", Run: func(cmd *cobra.Command, args []string) { listProjects() }},
-        &cobra.Command{Use: "sync", Run: func(cmd *cobra.Command, args []string) { syncProjects(args[0]) }},
-        &cobra.Command{Use: "open", Run: func(cmd *cobra.Command, args []string) { openProject(args[0]) }},
-        &cobra.Command{Use: "build", Run: func(cmd *cobra.Command, args []string) { buildProject(args[0]) }},
-        &cobra.Command{Use: "start", Run: func(cmd *cobra.Command, args []string) { startProject(args[0]) }},
-        &cobra.Command{Use: "stop", Run: func(cmd *cobra.Command, args []string) { stopProject(args[0]) }},
+        &cobra.Command{Use: "sync", Run: func(cmd *cobra.Command, args []string) { syncProjects(args) }},
+        &cobra.Command{Use: "open", Run: func(cmd *cobra.Command, args []string) { openProject(args) }},
+        &cobra.Command{Use: "build", Run: func(cmd *cobra.Command, args []string) { buildProject(args) }},
+        &cobra.Command{Use: "start", Run: func(cmd *cobra.Command, args []string) { startProject(args) }},
+        &cobra.Command{Use: "stop", Run: func(cmd *cobra.Command, args []string) { stopProject(args) }},
         &cobra.Command{Use: "monitor", Run: func(cmd *cobra.Command, args []string) { monitorProject() }},
     )
 }

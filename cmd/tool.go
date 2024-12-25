@@ -29,11 +29,11 @@ var toolCmd = &cobra.Command{
     },
 }
 
-func installTool(name string) {
+func installTool(args []string) {
     fmt.Println(utils.NotImplemented)
 }
 
-func uninstallTool(name string) {
+func uninstallTool(args []string) {
     fmt.Println(utils.NotImplemented)
 }
 
@@ -41,7 +41,7 @@ func listTools() {
     fmt.Println(utils.NotImplemented)
 }
 
-func updateTool(name string) {
+func updateTool(args []string) {
     fmt.Println(utils.NotImplemented)
 }
 
@@ -49,15 +49,9 @@ func init() {
     rootCmd.AddCommand(toolCmd)
 
     toolCmd.AddCommand(
-        &cobra.Command{Use: "install", Run: func(cmd *cobra.Command, args []string) { installTool(args[0]) }},
-        &cobra.Command{Use: "uninstall", Run: func(cmd *cobra.Command, args []string) { uninstallTool(args[0]) }},
+        &cobra.Command{Use: "install", Run: func(cmd *cobra.Command, args []string) { installTool(args) }},
+        &cobra.Command{Use: "uninstall", Run: func(cmd *cobra.Command, args []string) { uninstallTool(args) }},
         &cobra.Command{Use: "list", Run: func(cmd *cobra.Command, args []string) { listTools() }},
-        &cobra.Command{Use: "update", Run: func(cmd *cobra.Command, args []string) {
-            if len(args) > 0 {
-                updateTool(args[0])
-            } else {
-                updateTool("")
-            }
-        }},
+        &cobra.Command{Use: "update", Run: func(cmd *cobra.Command, args []string) { updateTool(args) }},
     )
 }
