@@ -1,14 +1,14 @@
-# 📖 Pancake Project Management Tool 📖
+# Pancake Project Management Tool 
 
 Pancake is a versatile tool designed to streamline your project management workflow. It simplifies running web and server modules, monitors application status, and offers customizable project locations and override files. Best of all, you can run and open projects from anywhere!
 
-## 🌟 Features:
+## Features:
 1. Simplifies running web and server modules.
 2. Monitors all running and non-running applications.
 3. Customizable project locations and override files.
 4. Runs and opens projects from anywhere.
 
-## 💡 Usage:
+## Usage:
 Use the command `pancake [command]`. Replace `<project_name>` with the name of your project.
 
 | Command | Description |
@@ -24,16 +24,11 @@ Use the command `pancake [command]`. Replace `<project_name>` with the name of y
 | pancake open <project_name> | Open the specified project with the command mentioned in code_editor_command. |
 
 ## Installation
-To install Pancake, use the `install.sh` script. This script will make the `pancake.sh` script executable and create a symbolic link to it, so you can use the `pancake` command from anywhere.
 
 ```bash
-./install.sh
-```
-
-##Uninstallation
-To uninstall Pancake, use the uninstall.sh script. This script will remove the symbolic link created by the install.sh script.
-```bash
-./uninstall.sh
+go build
+go install
+pancake [args]
 ```
 
 ##👨‍💻 Developer: Yadav, Abhishek - GitHub
