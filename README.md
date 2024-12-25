@@ -22,6 +22,7 @@ pancake/
 ├── go.mod
 └── go.sum
 ```
+
 ## Usage:
 Use the command `pancake [command]`. Replace `<project_name>` with the name of your project.
 
@@ -45,7 +46,35 @@ go install
 pancake [args]
 ```
 
-##👨‍💻 Developer: Yadav, Abhishek - GitHub
-Thank you for using Pancake! If you have any questions or need further assistance, feel free to ask.
+## Config file Structure
+```yml
+# Home directory for project storage
+home: $HOME/pancake # For MacOS & Linux
+#home: '%userprofile%/pancake' # For Windows
+
+code_editor: code # Preferred code editor (code -> VS Code, idea -> IntelliJ IDE)
+tools:
+  visual-studio-code: 1.96.2
+  maven: 3.9.9
+  openjdk@21: 21.0.5
+  openjdk@17: 17.0.13
+  node@20: 20.18.1
+  node@22: 22.12.0
+projects:
+  june-gpt: 
+    remote_ssh_url: git@github.com:a6h15hek/june-devgpt-desktop.git
+    type: web
+    port: 3000
+    start: npm start
+
+  spring-helloworld:
+    remote_ssh_url: git@github.com:paulczar/spring-helloworld.git
+    build: mvn clean install
+    start: mvn spring-boot:run
+
+```
+
+## 👨‍💻 Developer: Yadav, Abhishek - GitHub
+Thank you for visiting Pancake repo ! If you have any questions or need further assistance, feel free to ask.
 
 
