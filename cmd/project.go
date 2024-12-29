@@ -30,6 +30,8 @@ var projectCmd = &cobra.Command{
 	},
 }
 
+var config utils.Config
+
 func addProject(args []string) {
 	fmt.Println(utils.NotImplemented)
 }
@@ -39,7 +41,7 @@ func removeProject(args []string) {
 }
 
 func listProjects() {
-	config := utils.GetConfig()
+	config = *utils.GetConfig()
 	for projectName := range config.Projects {
 		fmt.Printf("- %s\n", projectName)
 	}

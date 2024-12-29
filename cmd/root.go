@@ -38,7 +38,7 @@ func editConfig() {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		fmt.Println("Error finding home directory:", err)
-		return
+		os.Exit(1)
 	}
 
 	filePath := homeDir + "/pancake.yml"
@@ -52,27 +52,28 @@ func editConfig() {
 			rootFile, err := os.Open(rootFilePath)
 			if err != nil {
 				fmt.Println("Error opening root pancake.yml file:", err)
-				return
+				os.Exit(1)
 			}
 			defer rootFile.Close()
 
 			newFile, err := os.Create(filePath)
 			if err != nil {
 				fmt.Println("Error creating pancake.yml file in home directory:", err)
-				return
+				os.Exit(1)
 			}
 			defer newFile.Close()
 
 			_, err = io.Copy(newFile, rootFile)
 			if err != nil {
 				fmt.Println("Error copying content to new pancake.yml file:", err)
-				return
+				os.Exit(1)
 			}
 			fmt.Println("pancake.yml file created in home directory.")
 			fmt.Printf("Opening pancake.yml file at: %s\n", filePath)
 			utils.OpenTextFileInDefaultEditor(filePath)
 		} else {
 			fmt.Println("Invalid Input. Command aborted.")
+			os.Exit(1)
 		}
 	} else {
 		fmt.Printf("Opening pancake.yml file at: %s\n", filePath)
