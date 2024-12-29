@@ -39,7 +39,10 @@ func removeProject(args []string) {
 }
 
 func listProjects() {
-	fmt.Println(utils.NotImplemented)
+	config := utils.GetConfig()
+	for projectName := range config.Projects {
+		fmt.Printf("- %s\n", projectName)
+	}
 }
 
 func syncProjects(args []string) {

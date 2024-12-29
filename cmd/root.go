@@ -72,7 +72,7 @@ func editConfig() {
 			fmt.Printf("Opening pancake.yml file at: %s\n", filePath)
 			utils.OpenTextFileInDefaultEditor(filePath)
 		} else {
-			fmt.Println("Command aborted.")
+			fmt.Println("Invalid Input. Command aborted.")
 		}
 	} else {
 		fmt.Printf("Opening pancake.yml file at: %s\n", filePath)
