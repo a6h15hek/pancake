@@ -36,15 +36,17 @@ pancake gpt <user_description_of_command>
 pancake/
 ├── utils/
 │   ├── constants.go
+│   ├── functions.go
+│   ├── structure.go
 ├── cmd/
 │   ├── root.go
 │   ├── project.go
 │   ├── tools.go
-│   ├── common.go
 ├── main.go
 ├── pancake.yml
 ├── go.mod
 └── go.sum
+
 ```
 
 ## Usage:
