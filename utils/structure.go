@@ -40,7 +40,7 @@ func GetConfig() *Config {
 	var config Config
 	err = yaml.Unmarshal(file, &config)
 	if err != nil {
-		fmt.Println("Error unmarshalling config file:", err)
+		fmt.Println("Error unmarshaling config file:", err)
 		os.Exit(1)
 	}
 
