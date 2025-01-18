@@ -71,6 +71,16 @@ go build
 go install
 pancake [args]
 ```
+# Status Codes
+```
+1     : Catchall for general errors
+2     : Misuse of shell builtins (according to Bash documentation)
+126   : Command invoked cannot execute
+127   : Command Not Found
+128   : Invalid argument to exit
+128+n : Fatal error signal "n"
+255   : Exit status out of range (exit takes only integer args in the range 0 - 255)
+```
 
 ## Config file Structure
 ```yml

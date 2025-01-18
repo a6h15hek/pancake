@@ -18,7 +18,6 @@ package cmd
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"os"
 
 	"github.com/a6h15hek/pancake/utils"
@@ -48,13 +47,8 @@ func editConfig() {
 
 		input, _ := reader.ReadString('\n')
 		if input == "yes\n" {
-			rootFilePath := "pancake.yml" // Directly refer to pancake.yml in the root directory
-			rootFile, err := os.Open(rootFilePath)
-			if err != nil {
-				fmt.Println("Error opening root pancake.yml file:", err)
-				os.Exit(1)
-			}
-			defer rootFile.Close()
+			// Assuming pancake.yml content is stored in a variable `pancakeYAMLContent`
+			pancakeYAMLContent := utils.DefaultYMLContent
 
 			newFile, err := os.Create(filePath)
 			if err != nil {
@@ -63,9 +57,9 @@ func editConfig() {
 			}
 			defer newFile.Close()
 
-			_, err = io.Copy(newFile, rootFile)
+			_, err = newFile.Write([]byte(pancakeYAMLContent))
 			if err != nil {
-				fmt.Println("Error copying content to new pancake.yml file:", err)
+				fmt.Println("Error writing content to new pancake.yml file:", err)
 				os.Exit(1)
 			}
 			fmt.Println("pancake.yml file created in home directory.")

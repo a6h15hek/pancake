@@ -40,6 +40,31 @@ const (
 	NotImplemented = "Soon to be Implemented."
 )
 
+const DefaultYMLContent = `# Home directory for project storage
+home: $HOME/pancake # For MacOS & Linux
+#home: '%userprofile%/pancake' # For Windows
+
+code_editor: code # Preferred code editor (code -> VS Code, idea -> IntelliJ IDE)
+tools:
+  visual-studio-code: 1.96.2
+  maven: 3.9.9
+  openjdk@21: 21.0.5
+  openjdk@17: 17.0.13
+  node@20: 20.18.1
+  node@22: 22.12.0
+projects:
+  june-gpt: 
+    remote_ssh_url: git@github.com:a6h15hek/june-devgpt-desktop.git
+    type: web
+    port: 3000
+    start: npm start
+
+  spring-helloworld:
+    remote_ssh_url: git@github.com:paulczar/spring-helloworld.git
+    build: mvn clean install
+    start: mvn spring-boot:run
+`
+
 const (
 	Copyright = `Copyright © 2024 Abhishek M. Yadav <abhishekyadav@duck.com>
 	Licensed under the Apache License, Version 2.0 (the "License");

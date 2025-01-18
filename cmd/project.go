@@ -24,7 +24,8 @@ import (
 
 // projectCmd represents the project command
 var projectCmd = &cobra.Command{
-	Use: "project",
+	Use:     "project",
+	Aliases: []string{"p"},
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println(utils.NotImplemented)
 	},

@@ -8,9 +8,10 @@ check_status() {
 }
 
 run_test() {
+    echo "🧪 Pancake Test Suite: $2..."
+    echo "Running command: $1" # Add a comment to show which command is running
     eval $1
     check_status "$2"
-    echo "🧪 Pancake Test Suite: $2..."
 }
 
 echo "🧪 Pancake Test Suite: Starting..."
@@ -33,3 +34,6 @@ run_test "pancake edit-config" "Opening config file for the second time"
 run_test "pancake project list" "Listing projects"
 
 echo "🧪 Pancake Test Suite: End."
+
+
+export PATH="/Users/unicorn/go/bin:$PATH"
