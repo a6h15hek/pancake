@@ -91,3 +91,52 @@ func (lw *loggingWriter) Write(p []byte) (n int, err error) {
 	fmt.Print(string(p))
 	return len(p), nil
 }
+
+// ExecuteCommandInNewTerminal runs a shell command in a specified directory in a new terminal window/tab and prints the command and its logs.
+func ExecuteCommandInNewTerminal(cmdStr, dir, projectName string, projectPIDs *map[string]int) error {
+	var command *exec.Cmd
+
+	switch runtime.GOOS {
+	case "windows":
+		command = exec.Command("cmd", "/c", "start", "cmd", "/k", fmt.Sprintf("cd /d %s && %s", dir, cmdStr))
+	case "darwin":
+		command = exec.Command("osascript", "-e", fmt.Sprintf(`tell application "Terminal" to do script "cd %s && %s"`, dir, cmdStr))
+	default:
+		command = exec.Command("gnome-terminal", "--", "sh", "-c", fmt.Sprintf("cd %s && %s", dir, cmdStr))
+	}
+
+	err := command.Start()
+	if err != nil {
+		return err
+	}
+
+	(*projectPIDs)[projectName] = command.Process.Pid
+	return nil
+}
+
+// printTable prints a table with the given data.
+func PrintTable(data [][]string) {
+	// Find the maximum width for each column
+	colWidths := make([]int, len(data[0]))
+	for _, row := range data {
+		for colIndex, col := range row {
+			if len(col) > colWidths[colIndex] {
+				colWidths[colIndex] = len(col)
+			}
+		}
+	}
+
+	// Print the table with separators and proper alignment
+	for _, row := range data {
+		for colIndex, col := range row {
+			fmt.Printf("| %-*s ", colWidths[colIndex], col)
+		}
+		fmt.Println("|")
+	}
+
+	// Print the table border
+	for colIndex := range data[0] {
+		fmt.Printf("| %s ", strings.Repeat("-", colWidths[colIndex]))
+	}
+	fmt.Println("|")
+}

@@ -16,7 +16,10 @@ limitations under the License.
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	"github.com/a6h15hek/pancake/utils"
@@ -33,9 +36,14 @@ var projectCmd = &cobra.Command{
 }
 
 var config utils.Config
+var projectPIDs = make(map[string]int)
+var pidsFilePath string
 
 func init() {
 	rootCmd.AddCommand(projectCmd)
+
+	pidsFilePath = filepath.Join(config.Home, "pids.json")
+	loadProjectPIDs()
 
 	projectCmd.AddCommand(
 		&cobra.Command{Use: "list", Run: func(cmd *cobra.Command, args []string) { listProjects() }},
@@ -43,9 +51,37 @@ func init() {
 		&cobra.Command{Use: "open", Run: func(cmd *cobra.Command, args []string) { openProject(args) }},
 		&cobra.Command{Use: "build", Run: func(cmd *cobra.Command, args []string) { buildProject(args) }},
 		&cobra.Command{Use: "start", Run: func(cmd *cobra.Command, args []string) { startProject(args) }},
-		&cobra.Command{Use: "stop", Run: func(cmd *cobra.Command, args []string) { stopProject(args) }},
+		//&cobra.Command{Use: "stop", Run: func(cmd *cobra.Command, args []string) { stopProject(args) }},
 		&cobra.Command{Use: "monitor", Run: func(cmd *cobra.Command, args []string) { monitorProject() }},
 	)
+}
+
+func saveProjectPIDs() {
+	data, err := json.Marshal(projectPIDs)
+	if err != nil {
+		fmt.Printf("❌ Error saving project PIDs: %v\n", err)
+		return
+	}
+
+	err = ioutil.WriteFile(pidsFilePath, data, 0644)
+	if err != nil {
+		fmt.Printf("❌ Error writing project PIDs file: %v\n", err)
+	}
+}
+
+func loadProjectPIDs() {
+	data, err := ioutil.ReadFile(pidsFilePath)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			fmt.Printf("❌ Error reading project PIDs file: %v\n", err)
+		}
+		return
+	}
+
+	err = json.Unmarshal(data, &projectPIDs)
+	if err != nil {
+		fmt.Printf("❌ Error unmarshalling project PIDs: %v\n", err)
+	}
 }
 
 // listProjects prints all projects listed in the configuration.
@@ -180,11 +216,12 @@ func startSingleProject(projectName string) {
 		return
 	}
 
-	err := utils.ExecuteCommand(project.Start, projectPath)
+	err := utils.ExecuteCommandInNewTerminal(project.Start, projectPath, projectName, &projectPIDs)
 	if err != nil {
 		fmt.Printf("❌ Error starting project %v: %v\n", projectName, err)
 	} else {
 		fmt.Printf("✅ Started project %s successfully.\n", projectName)
+		saveProjectPIDs()
 	}
 }
 
@@ -205,12 +242,66 @@ func startProject(args []string) {
 	}
 }
 
-// stopProject stops a project (not yet implemented).
-func stopProject(args []string) {
-	fmt.Println(utils.NotImplemented)
+// monitorProject prints a table with information about all projects.
+func monitorProject() {
+	fmt.Println("🔍 Monitoring... Fetching project status")
+	config = *utils.GetConfig()
+
+	data := [][]string{
+		{"Project Name", "Running", "PID", "Port", "Type"},
+	}
+
+	for projectName, project := range config.Projects {
+		running := "No"
+		pid := "-"
+		port := "-"
+		projectType := project.Type
+
+		if pidVal, exists := projectPIDs[projectName]; exists {
+			running = "Yes"
+			pid = fmt.Sprintf("%d", pidVal)
+			if project.Port != "" {
+				port = project.Port
+			}
+		}
+
+		data = append(data, []string{projectName, running, pid, port, projectType})
+	}
+
+	utils.PrintTable(data)
 }
 
-// monitorProject monitors a project (not yet implemented).
-func monitorProject() {
-	fmt.Println(utils.NotImplemented)
-}
+// stopProject stops a project by name.
+// func stopProject(args []string) {
+// 	fmt.Println("🛑 Stopping... Running stop command")
+// 	config = *utils.GetConfig()
+
+// 	if len(args) == 0 {
+// 		if utils.ConfirmAction("stop") {
+// 			for projectName, pid := range projectPIDs {
+// 				if err := utils.KillProjectByPID(pid); err == nil {
+// 					fmt.Printf("✅ Stopped project %s successfully.\n", projectName)
+// 					delete(projectPIDs, projectName)
+// 					saveProjectPIDs()
+// 				} else {
+// 					fmt.Printf("❌ Error stopping project %s: %v\n", projectName, err)
+// 				}
+// 			}
+// 		} else {
+// 			fmt.Println("Stop canceled.")
+// 		}
+// 	} else {
+// 		projectName := args[0]
+// 		if pid, exists := projectPIDs[projectName]; exists {
+// 			if err := utils.KillProjectByPID(pid); err == nil {
+// 				fmt.Printf("✅ Stopped project %s successfully.\n", projectName)
+// 				delete(projectPIDs, projectName)
+// 				saveProjectPIDs()
+// 			} else {
+// 				fmt.Printf("❌ Error stopping project %s: %v\n", projectName, err)
+// 			}
+// 		} else {
+// 			fmt.Printf("❌ No running process found for project %s.\n", projectName)
+// 		}
+// 	}
+// }

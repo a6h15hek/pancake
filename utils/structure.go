@@ -19,7 +19,7 @@ type Config struct {
 type Project struct {
 	RemoteSSHURL string `yaml:"remote_ssh_url"`
 	Type         string `yaml:"type,omitempty"`
-	Port         int    `yaml:"port,omitempty"`
+	Port         string `yaml:"port,omitempty"`
 	Start        string `yaml:"start,omitempty"`
 	Build        string `yaml:"build,omitempty"`
 }
