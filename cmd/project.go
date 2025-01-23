@@ -61,7 +61,7 @@ func listProjects() {
 func syncSingleProject(projectName string) {
 	project, exists := config.Projects[projectName]
 	if !exists {
-		fmt.Printf("Project %s not found in configuration.\n", projectName)
+		fmt.Printf("❌ Project %s not found in configuration.\n", projectName)
 		return
 	}
 
@@ -120,18 +120,18 @@ func buildSingleProject(projectName string) {
 	fmt.Printf("🔨 Building... Running build command for project %s\n", projectName)
 	project, exists := config.Projects[projectName]
 	if !exists {
-		fmt.Printf("Project %s not found in configuration.\n", projectName)
+		fmt.Printf("❌ Project %s not found in configuration.\n", projectName)
 		return
 	}
 
 	projectPath := filepath.Join(config.Home, projectName)
 	if !utils.CheckExists(projectPath) {
-		fmt.Printf("Project path %s does not exist.\n", projectPath)
+		fmt.Printf("❌ Project path %s does not exist.\n", projectPath)
 		return
 	}
 
 	if project.Build == "" {
-		fmt.Println("Build command not specified in the configuration.")
+		fmt.Println("❌ Build command not specified in the configuration.")
 		return
 	}
 
@@ -165,18 +165,18 @@ func startSingleProject(projectName string) {
 	fmt.Printf("🚀 Starting... Running start command for project %s\n", projectName)
 	project, exists := config.Projects[projectName]
 	if !exists {
-		fmt.Printf("Project %s not found in configuration.\n", projectName)
+		fmt.Printf("❌ Project %s not found in configuration.\n", projectName)
 		return
 	}
 
 	projectPath := filepath.Join(config.Home, projectName)
 	if !utils.CheckExists(projectPath) {
-		fmt.Printf("Project path %s does not exist.\n", projectPath)
+		fmt.Printf("❌ Project path %s does not exist.\n", projectPath)
 		return
 	}
 
 	if project.Start == "" {
-		fmt.Println("Start command not specified in the configuration.")
+		fmt.Println("❌ Start command not specified in the configuration.")
 		return
 	}
 

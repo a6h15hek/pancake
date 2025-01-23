@@ -56,9 +56,9 @@ tools:
 projects:
   june-gpt: 
     remote_ssh_url: git@github.com:a6h15hek/june-devgpt-desktop.git
-    build: npm install
     type: web
     port: 3000
+    build: npm install
     start: npm start
 
   spring-helloworld:

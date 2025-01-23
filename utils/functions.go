@@ -67,9 +67,27 @@ func ConfirmAction(action string) bool {
 	return strings.TrimSpace(response) == "yes"
 }
 
-// ExecuteCommand runs a shell command in a specified directory.
+// ExecuteCommand runs a shell command in a specified directory and prints the command and its logs.
 func ExecuteCommand(cmdStr, dir string) error {
+	fmt.Printf("> %s\n", cmdStr)
 	cmd := exec.Command("sh", "-c", cmdStr)
 	cmd.Dir = dir
+
+	// Capture and print the command's output and error logs
+	cmd.Stdout = newLoggingWriter()
+	cmd.Stderr = newLoggingWriter()
+
 	return cmd.Run()
+}
+
+// NewLoggingWriter creates a writer that prints the logs.
+func newLoggingWriter() *loggingWriter {
+	return &loggingWriter{}
+}
+
+type loggingWriter struct{}
+
+func (lw *loggingWriter) Write(p []byte) (n int, err error) {
+	fmt.Print(string(p))
+	return len(p), nil
 }

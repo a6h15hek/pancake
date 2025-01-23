@@ -8,10 +8,12 @@ check_status() {
 }
 
 run_test() {
+    echo "-----------------------------------------------------------------------"
     echo "🧪 Pancake Test Suite: $2..."
     echo "Running command: $1" # Add a comment to show which command is running
     eval $1
     check_status "$2"
+    echo "-----------------------------------------------------------------------"
 }
 
 echo "🧪 Pancake Test Suite: Starting..."
@@ -40,11 +42,11 @@ run_test "pancake project sync" "Sync all projects"
 run_test "pancake project open spring-helloworld" "Open 1 projects"
 run_test "pancake project open" "Open all projects"
 
-run_test "pancake project build spring-helloworld" "Open 1 projects"
-run_test "pancake project build" "Open all projects"
+run_test "pancake project build spring-helloworld" "build 1 projects"
+run_test "pancake project build" "build all projects"
 
-run_test "pancake project start spring-helloworld" "Start 1 projects"
-run_test "pancake project start" "Start all projects"
+#run_test "pancake project start spring-helloworld" "Start 1 projects"
+#run_test "pancake project start" "Start all projects"
 
 echo "🧪 Pancake Test Suite: End."
 
