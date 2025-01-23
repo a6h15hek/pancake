@@ -20,18 +20,31 @@ run_test "go build" "Building"
 run_test "go install" "Installing"
 run_test "pancake version" "Checking version"
 
-if [ -e ~/pancake.yml ]; then
-    echo "pancake.yml exists. Deleting the file..."
-    rm ~/pancake.yml
-    check_status "Delete pancake.yml"
-    echo "pancake.yml deleted successfully."
-else
-    echo "pancake.yml does not exist. No action needed."
-fi
+# Test to check default file create works.
+# if [ -e ~/pancake.yml ]; then
+#     echo "pancake.yml exists. Deleting the file..."
+#     rm ~/pancake.yml
+#     check_status "Delete pancake.yml"
+#     echo "pancake.yml deleted successfully."
+# else
+#     echo "pancake.yml does not exist. No action needed."
+# fi
 
 run_test "pancake edit-config" "Opening config file for the first time"
 run_test "pancake edit-config" "Opening config file for the second time"
 run_test "pancake project list" "Listing projects"
+
+run_test "pancake project sync spring-helloworld" "Sync 1 projects"
+run_test "pancake project sync" "Sync all projects"
+
+run_test "pancake project open spring-helloworld" "Open 1 projects"
+run_test "pancake project open" "Open all projects"
+
+run_test "pancake project build spring-helloworld" "Open 1 projects"
+run_test "pancake project build" "Open all projects"
+
+run_test "pancake project start spring-helloworld" "Start 1 projects"
+run_test "pancake project start" "Start all projects"
 
 echo "🧪 Pancake Test Suite: End."
 

@@ -17,7 +17,6 @@ package cmd
 
 import (
 	"fmt"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/a6h15hek/pancake/utils"
@@ -35,13 +34,30 @@ var projectCmd = &cobra.Command{
 
 var config utils.Config
 
+func init() {
+	rootCmd.AddCommand(projectCmd)
+
+	projectCmd.AddCommand(
+		&cobra.Command{Use: "list", Run: func(cmd *cobra.Command, args []string) { listProjects() }},
+		&cobra.Command{Use: "sync", Run: func(cmd *cobra.Command, args []string) { syncProjects(args) }},
+		&cobra.Command{Use: "open", Run: func(cmd *cobra.Command, args []string) { openProject(args) }},
+		&cobra.Command{Use: "build", Run: func(cmd *cobra.Command, args []string) { buildProject(args) }},
+		&cobra.Command{Use: "start", Run: func(cmd *cobra.Command, args []string) { startProject(args) }},
+		&cobra.Command{Use: "stop", Run: func(cmd *cobra.Command, args []string) { stopProject(args) }},
+		&cobra.Command{Use: "monitor", Run: func(cmd *cobra.Command, args []string) { monitorProject() }},
+	)
+}
+
+// listProjects prints all projects listed in the configuration.
 func listProjects() {
+	fmt.Println("🔍 Loading... Listing projects")
 	config = *utils.GetConfig()
 	for projectName := range config.Projects {
 		fmt.Printf("- %s\n", projectName)
 	}
 }
 
+// syncSingleProject synchronizes a single project by name.
 func syncSingleProject(projectName string) {
 	project, exists := config.Projects[projectName]
 	if !exists {
@@ -56,14 +72,18 @@ func syncSingleProject(projectName string) {
 	gitExists := utils.CheckExists(gitDirPath)
 
 	if !projectExists || !gitExists {
+		fmt.Printf("🔄 Syncing... Cloning repository for project %s\n", projectName)
 		utils.CloneRepository(projectPath, project.RemoteSSHURL)
 	} else {
+		fmt.Printf("🔄 Syncing... Pulling changes for project %s\n", projectName)
 		utils.PullChanges(projectPath)
 	}
-	fmt.Printf("Synchronized project %s successfully.\n", projectName)
+	fmt.Printf("✅ Synchronized project %s successfully.\n", projectName)
 }
 
+// syncProjects synchronizes all or specific projects.
 func syncProjects(args []string) {
+	fmt.Println("🔄 Loading... Running sync command")
 	config = *utils.GetConfig()
 	if len(args) == 0 {
 		if utils.ConfirmAction("sync") {
@@ -78,23 +98,26 @@ func syncProjects(args []string) {
 	}
 }
 
+// openProject opens a project in the configured code editor.
 func openProject(args []string) {
+	fmt.Println("🔍 Loading... Opening project")
 	config = *utils.GetConfig()
 	path := config.Home
 	if len(args) > 0 {
 		path = filepath.Join(config.Home, args[0])
 	}
 
-	cmd := exec.Command(config.CodeEditor, path)
-	err := cmd.Run()
+	err := utils.ExecuteCommand(config.CodeEditor, path)
 	if err != nil {
-		fmt.Printf("Error opening project: %v\n", err)
+		fmt.Printf("❌ Error opening project: %v\n", err)
 	} else {
-		fmt.Printf("Opened project at %s\n", path)
+		fmt.Printf("✅ Opened project at %s\n", path)
 	}
 }
 
+// buildSingleProject builds a single project by name.
 func buildSingleProject(projectName string) {
+	fmt.Printf("🔨 Building... Running build command for project %s\n", projectName)
 	project, exists := config.Projects[projectName]
 	if !exists {
 		fmt.Printf("Project %s not found in configuration.\n", projectName)
@@ -112,17 +135,17 @@ func buildSingleProject(projectName string) {
 		return
 	}
 
-	cmd := exec.Command("sh", "-c", project.Build)
-	cmd.Dir = projectPath
-	err := cmd.Run()
+	err := utils.ExecuteCommand(project.Build, projectPath)
 	if err != nil {
-		fmt.Printf("Error building project %v: %v\n", projectName, err)
+		fmt.Printf("❌ Error building project %v: %v\n", projectName, err)
 	} else {
-		fmt.Printf("Built project %s successfully.\n", projectName)
+		fmt.Printf("✅ Built project %s successfully.\n", projectName)
 	}
 }
 
+// buildProject builds all or specific projects.
 func buildProject(args []string) {
+	fmt.Println("🔨 Loading... Running build command")
 	config = *utils.GetConfig()
 	if len(args) == 0 {
 		if utils.ConfirmAction("build") {
@@ -137,7 +160,9 @@ func buildProject(args []string) {
 	}
 }
 
+// startSingleProject starts a single project by name.
 func startSingleProject(projectName string) {
+	fmt.Printf("🚀 Starting... Running start command for project %s\n", projectName)
 	project, exists := config.Projects[projectName]
 	if !exists {
 		fmt.Printf("Project %s not found in configuration.\n", projectName)
@@ -155,17 +180,17 @@ func startSingleProject(projectName string) {
 		return
 	}
 
-	cmd := exec.Command("sh", "-c", project.Start)
-	cmd.Dir = projectPath
-	err := cmd.Run()
+	err := utils.ExecuteCommand(project.Start, projectPath)
 	if err != nil {
-		fmt.Printf("Error starting project %v: %v\n", projectName, err)
+		fmt.Printf("❌ Error starting project %v: %v\n", projectName, err)
 	} else {
-		fmt.Printf("Started project %s successfully.\n", projectName)
+		fmt.Printf("✅ Started project %s successfully.\n", projectName)
 	}
 }
 
+// startProject starts all or specific projects.
 func startProject(args []string) {
+	fmt.Println("🚀 Loading... Running start command")
 	config = *utils.GetConfig()
 	if len(args) == 0 {
 		if utils.ConfirmAction("start") {
@@ -180,24 +205,12 @@ func startProject(args []string) {
 	}
 }
 
+// stopProject stops a project (not yet implemented).
 func stopProject(args []string) {
 	fmt.Println(utils.NotImplemented)
 }
 
+// monitorProject monitors a project (not yet implemented).
 func monitorProject() {
 	fmt.Println(utils.NotImplemented)
-}
-
-func init() {
-	rootCmd.AddCommand(projectCmd)
-
-	projectCmd.AddCommand(
-		&cobra.Command{Use: "list", Run: func(cmd *cobra.Command, args []string) { listProjects() }},
-		&cobra.Command{Use: "sync", Run: func(cmd *cobra.Command, args []string) { syncProjects(args) }},
-		&cobra.Command{Use: "open", Run: func(cmd *cobra.Command, args []string) { openProject(args) }},
-		&cobra.Command{Use: "build", Run: func(cmd *cobra.Command, args []string) { buildProject(args) }},
-		&cobra.Command{Use: "start", Run: func(cmd *cobra.Command, args []string) { startProject(args) }},
-		&cobra.Command{Use: "stop", Run: func(cmd *cobra.Command, args []string) { stopProject(args) }},
-		&cobra.Command{Use: "monitor", Run: func(cmd *cobra.Command, args []string) { monitorProject() }},
-	)
 }

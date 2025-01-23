@@ -40,7 +40,8 @@ const (
 	NotImplemented = "Soon to be Implemented."
 )
 
-const DefaultYMLContent = `# Home directory for project storage
+const DefaultYMLContent = `# Pancake Configuration File.
+# Home directory for project storage
 home: $HOME/pancake # For MacOS & Linux
 #home: '%userprofile%/pancake' # For Windows
 
@@ -55,6 +56,7 @@ tools:
 projects:
   june-gpt: 
     remote_ssh_url: git@github.com:a6h15hek/june-devgpt-desktop.git
+    build: npm install
     type: web
     port: 3000
     start: npm start

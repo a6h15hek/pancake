@@ -3,12 +3,12 @@
 Pancake is a command line tool designed to streamline your project management workflow. It simplifies and makes it easy to sync multiple projects from remote repositories, helps in building and running projects on a local machine, and allows for the installation, uninstallation, and updating of development software and tools. 
 
 ```bash
-pancake list                  # View list of all projects you are working on
-pancake sync                  # Sync multiple projects from the remote repository 
-pancake build <project_name>  # Build a project
-pancake start <project_name>  # Start a project on the local machine
-pancake monitor               # Show details about the port, process PID, and uptime
-pancake stop <project_name>   # Stop a project
+pancake project list                  # View list of all projects you are working on
+pancake project sync                  # Sync multiple projects from the remote repository 
+pancake project build <project_name>  # Build a project
+pancake project start <project_name>  # Start a project on the local machine
+pancake project monitor               # Show details about the port, process PID, and uptime
+pancake project stop <project_name>   # Stop a project
 ```
 It keeps all project files and tools in one place and stores all configurations in the pancake.yml file. Sharing this single file enables the sharing of your entire developer setup, making backups and migration from one machine to another easy.
 

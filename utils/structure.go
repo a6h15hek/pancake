@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 )
@@ -43,6 +44,9 @@ func GetConfig() *Config {
 		fmt.Println("Error unmarshaling config file:", err)
 		os.Exit(1)
 	}
+
+	// Replace $HOME with actual home directory
+	config.Home = strings.Replace(config.Home, "$HOME", homeDir, -1)
 
 	return &config
 }
