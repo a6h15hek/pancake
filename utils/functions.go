@@ -2,9 +2,11 @@ package utils
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 )
@@ -139,4 +141,34 @@ func PrintTable(data [][]string) {
 		fmt.Printf("| %s ", strings.Repeat("-", colWidths[colIndex]))
 	}
 	fmt.Println("|")
+}
+
+// SaveProjectPIDs saves the project PIDs to a specified file.
+func SaveProjectPIDs(fileLocation string, projectPIDs map[string]int) {
+	data, err := json.Marshal(projectPIDs)
+	if err != nil {
+		fmt.Printf("❌ Error saving project PIDs: %v\n", err)
+		return
+	}
+
+	err = os.WriteFile(filepath.Join(fileLocation, "pids.json"), data, 0644)
+	if err != nil {
+		fmt.Printf("❌ Error writing project PIDs file: %v\n", err)
+	}
+}
+
+// LoadProjectPIDs loads the project PIDs from a specified file.
+func LoadProjectPIDs(fileLocation string, projectPIDs *map[string]int) {
+	data, err := os.ReadFile(filepath.Join(fileLocation, "pids.json"))
+	if err != nil {
+		if !os.IsNotExist(err) {
+			fmt.Printf("❌ Error reading project PIDs file: %v\n", err)
+		}
+		return
+	}
+
+	err = json.Unmarshal(data, projectPIDs)
+	if err != nil {
+		fmt.Printf("❌ Error unmarshaling project PIDs: %v\n", err)
+	}
 }

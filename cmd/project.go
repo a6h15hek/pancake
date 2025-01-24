@@ -16,10 +16,7 @@ limitations under the License.
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"os"
 	"path/filepath"
 
 	"github.com/a6h15hek/pancake/utils"
@@ -37,13 +34,9 @@ var projectCmd = &cobra.Command{
 
 var config utils.Config
 var projectPIDs = make(map[string]int)
-var pidsFilePath string
 
 func init() {
 	rootCmd.AddCommand(projectCmd)
-
-	pidsFilePath = filepath.Join(config.Home, "pids.json")
-	loadProjectPIDs()
 
 	projectCmd.AddCommand(
 		&cobra.Command{Use: "list", Run: func(cmd *cobra.Command, args []string) { listProjects() }},
@@ -54,34 +47,6 @@ func init() {
 		//&cobra.Command{Use: "stop", Run: func(cmd *cobra.Command, args []string) { stopProject(args) }},
 		&cobra.Command{Use: "monitor", Run: func(cmd *cobra.Command, args []string) { monitorProject() }},
 	)
-}
-
-func saveProjectPIDs() {
-	data, err := json.Marshal(projectPIDs)
-	if err != nil {
-		fmt.Printf("❌ Error saving project PIDs: %v\n", err)
-		return
-	}
-
-	err = ioutil.WriteFile(pidsFilePath, data, 0644)
-	if err != nil {
-		fmt.Printf("❌ Error writing project PIDs file: %v\n", err)
-	}
-}
-
-func loadProjectPIDs() {
-	data, err := ioutil.ReadFile(pidsFilePath)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			fmt.Printf("❌ Error reading project PIDs file: %v\n", err)
-		}
-		return
-	}
-
-	err = json.Unmarshal(data, &projectPIDs)
-	if err != nil {
-		fmt.Printf("❌ Error unmarshalling project PIDs: %v\n", err)
-	}
 }
 
 // listProjects prints all projects listed in the configuration.
@@ -199,6 +164,7 @@ func buildProject(args []string) {
 // startSingleProject starts a single project by name.
 func startSingleProject(projectName string) {
 	fmt.Printf("🚀 Starting... Running start command for project %s\n", projectName)
+	config = *utils.GetConfig()
 	project, exists := config.Projects[projectName]
 	if !exists {
 		fmt.Printf("❌ Project %s not found in configuration.\n", projectName)
@@ -221,7 +187,7 @@ func startSingleProject(projectName string) {
 		fmt.Printf("❌ Error starting project %v: %v\n", projectName, err)
 	} else {
 		fmt.Printf("✅ Started project %s successfully.\n", projectName)
-		saveProjectPIDs()
+		utils.SaveProjectPIDs(config.Home, projectPIDs)
 	}
 }
 
@@ -246,6 +212,7 @@ func startProject(args []string) {
 func monitorProject() {
 	fmt.Println("🔍 Monitoring... Fetching project status")
 	config = *utils.GetConfig()
+	utils.LoadProjectPIDs(config.Home, &projectPIDs)
 
 	data := [][]string{
 		{"Project Name", "Running", "PID", "Port", "Type"},
