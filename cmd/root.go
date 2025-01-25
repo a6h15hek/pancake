@@ -16,7 +16,6 @@ limitations under the License.
 package cmd
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 
@@ -44,11 +43,7 @@ func editConfig() {
 
 	filePath := homeDir + "/pancake.yml"
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		reader := bufio.NewReader(os.Stdin)
-		fmt.Println("pancake.yml file does not exist. Do you want to create it? (yes/no)")
-
-		input, _ := reader.ReadString('\n')
-		if input == "yes\n" {
+		if utils.ConfirmAction("pancake.yml file does not exist. Do you want to create it? (yes/no)") {
 			// Assuming pancake.yml content is stored in a variable `pancakeYAMLContent`
 			pancakeYAMLContent := utils.DefaultYMLContent
 
