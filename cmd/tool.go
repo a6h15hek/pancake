@@ -56,15 +56,28 @@ func listTools() {
 
 func setupTools() {
 	platform := runtime.GOOS
+	var success bool
+
 	switch platform {
 	case "windows":
 		fmt.Println("The Pancake uses Chocolatey internally.")
-		utils.SetupChocolatey()
+		success = utils.SetupChocolatey()
 	case "darwin", "linux":
 		fmt.Println("The Pancake uses Homebrew internally.")
-		utils.SetupHomebrew()
+		success = utils.SetupHomebrew()
 	default:
 		fmt.Println("❌ Unsupported platform:", platform)
+		return
+	}
+
+	if !success {
+		fmt.Println("❌ Setup failed.")
+		return
+	}
+
+	config := *utils.GetConfig()
+	for _, toolName := range config.Tools {
+		handleToolCommand([]string{toolName}, "install")
 	}
 }
 
