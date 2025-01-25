@@ -38,12 +38,12 @@ func init() {
 	rootCmd.AddCommand(projectCmd)
 
 	projectCmd.AddCommand(
-		&cobra.Command{Use: "list", Run: func(cmd *cobra.Command, args []string) { listProjects() }},
-		&cobra.Command{Use: "sync", Run: func(cmd *cobra.Command, args []string) { syncProjects(args) }},
-		&cobra.Command{Use: "open", Run: func(cmd *cobra.Command, args []string) { openProject(args) }},
-		&cobra.Command{Use: "build", Run: func(cmd *cobra.Command, args []string) { buildProject(args) }},
-		&cobra.Command{Use: "start", Run: func(cmd *cobra.Command, args []string) { startProject(args) }},
-		&cobra.Command{Use: "monitor", Run: func(cmd *cobra.Command, args []string) { monitorProject() }},
+		&cobra.Command{Use: "list", Aliases: []string{"l"}, Run: func(cmd *cobra.Command, args []string) { listProjects() }},
+		&cobra.Command{Use: "sync", Aliases: []string{"s"}, Run: func(cmd *cobra.Command, args []string) { syncProjects(args) }},
+		&cobra.Command{Use: "open", Aliases: []string{"o"}, Run: func(cmd *cobra.Command, args []string) { openProject(args) }},
+		&cobra.Command{Use: "build", Aliases: []string{"b"}, Run: func(cmd *cobra.Command, args []string) { buildProject(args) }},
+		&cobra.Command{Use: "run", Aliases: []string{"r"}, Run: func(cmd *cobra.Command, args []string) { runProject(args) }},
+		&cobra.Command{Use: "monitor", Aliases: []string{"m"}, Run: func(cmd *cobra.Command, args []string) { monitorProject() }},
 	)
 }
 
@@ -150,9 +150,9 @@ func buildProject(args []string) {
 	handleProjectAction(args, buildSingleProject)
 }
 
-// startSingleProject starts a single project by name.
-func startSingleProject(projectName string) {
-	fmt.Printf("🚀 Starting... Running start command for project %s\n", projectName)
+// runSingleProject runs a single project by name.
+func runSingleProject(projectName string) {
+	fmt.Printf("🚀 Running project %s\n", projectName)
 	project, exists := config.Projects[projectName]
 	if !exists {
 		fmt.Printf("❌ Project %s not found in configuration.\n", projectName)
@@ -165,22 +165,22 @@ func startSingleProject(projectName string) {
 		return
 	}
 
-	if project.Start == "" {
-		fmt.Println("❌ Start command not specified in the configuration.")
+	if project.Run == "" {
+		fmt.Println("❌ Run command not specified in the configuration.")
 		return
 	}
 
-	err := utils.ExecuteCommandInNewTerminal(project.Start, projectPath, projectName, &projectPIDs)
+	err := utils.ExecuteCommandInNewTerminal(project.Run, projectPath, projectName, &projectPIDs)
 	if err != nil {
-		fmt.Printf("❌ Error starting project %v: %v\n", projectName, err)
+		fmt.Printf("❌ Error running project %v: %v\n", projectName, err)
 	} else {
 		fmt.Printf("✅ Started project %s successfully.\n", projectName)
 		utils.SaveProjectPIDs(config.Home, projectPIDs)
 	}
 }
 
-func startProject(args []string) {
-	handleProjectAction(args, startSingleProject)
+func runProject(args []string) {
+	handleProjectAction(args, runSingleProject)
 }
 
 // monitorProject prints a table with information about all projects.

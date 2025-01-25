@@ -56,12 +56,12 @@ projects:
     type: web
     port: 3000
     build: npm install
-    start: npm start
+    run: npm start
 
   spring-helloworld:
     remote_ssh_url: git@github.com:paulczar/spring-helloworld.git
     build: mvn clean install
-    start: mvn spring-boot:run
+    run: mvn spring-boot:run
 `
 const (
 	ToolsDescription = `Usage:
