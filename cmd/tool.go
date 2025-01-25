@@ -113,7 +113,7 @@ func handleToolCommand(args []string, action string) {
 			}
 		}
 		if !found {
-			fmt.Printf("❌ Tool '%s' is not installed. Cannot uninstall.\n", toolName)
+			fmt.Printf("❌ Tool '%s' is not installed via pancake. Cannot uninstall.\n", toolName)
 			return
 		}
 	}

@@ -27,21 +27,21 @@ type Project struct {
 func GetConfig() *Config {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Println("Error getting user home directory:", err)
+		fmt.Println("❌ Error getting user home directory:", err)
 		os.Exit(1)
 	}
 	configPath := filepath.Join(homeDir, "pancake.yml")
 
 	file, err := os.ReadFile(configPath)
 	if err != nil {
-		fmt.Println("Error reading config file:", err)
+		fmt.Println("❌ Error reading config file:", err)
 		os.Exit(1)
 	}
 
 	var config Config
 	err = yaml.Unmarshal(file, &config)
 	if err != nil {
-		fmt.Println("Error unmarshaling config file:", err)
+		fmt.Println("❌ Error unmarshaling config file:", err)
 		os.Exit(1)
 	}
 
@@ -54,21 +54,21 @@ func GetConfig() *Config {
 func UpdateConfig(config *Config) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Println("Error getting user home directory:", err)
+		fmt.Println("❌ Error getting user home directory:", err)
 		return
 	}
 	configPath := filepath.Join(homeDir, "pancake.yml")
 
 	data, err := yaml.Marshal(config)
 	if err != nil {
-		fmt.Println("Error marshaling config data:", err)
+		fmt.Println("❌ Error marshaling config data:", err)
 		return
 	}
 
 	err = os.WriteFile(configPath, data, 0644)
 	if err != nil {
-		fmt.Println("Error writing config file:", err)
+		fmt.Println("❌ Error writing config file:", err)
 		return
 	}
-	fmt.Println("Config file updated successfully.")
+	fmt.Println("✅ Config file updated successfully.")
 }
