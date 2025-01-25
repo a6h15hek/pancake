@@ -66,7 +66,12 @@ func ConfirmAction(message string) bool {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Printf("%s", message)
 	response, _ := reader.ReadString('\n')
-	return strings.TrimSpace(response) == "yes" || strings.TrimSpace(response) == "y"
+	confirm := strings.TrimSpace(response) == "yes" || strings.TrimSpace(response) == "y"
+	if !confirm {
+		fmt.Println("Action aborted.")
+		return false
+	}
+	return true
 }
 
 // ExecuteCommand runs a shell command in a specified directory and prints the command and its logs.

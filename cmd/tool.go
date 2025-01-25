@@ -63,13 +63,13 @@ func setupTools() {
 		fmt.Println("The Pancake uses Homebrew internally.")
 		utils.SetupHomebrew()
 	default:
-		fmt.Println("Unsupported platform:", platform)
+		fmt.Println("❌ Unsupported platform:", platform)
 	}
 }
 
 func searchTool(args []string) {
 	if len(args) == 0 {
-		fmt.Println("Error: Missing search query")
+		fmt.Println("❌ Error: Missing search query")
 		return
 	}
 	if !utils.EnsureToolInstalled() {
@@ -79,13 +79,13 @@ func searchTool(args []string) {
 	cmdStr := fmt.Sprintf("%s search %s", utils.GetPackageManager(), query)
 	err := utils.ExecuteCommand(cmdStr, "")
 	if err != nil {
-		fmt.Println("Error searching tool:", err)
+		fmt.Println("❌ Error searching tool:", err)
 	}
 }
 
 func handleToolCommand(args []string, action string) {
 	if len(args) == 0 {
-		fmt.Printf("Error: Missing tool name for %s\n", action)
+		fmt.Printf("❌ Error: Missing tool name for %s\n", action)
 		return
 	}
 	if !utils.EnsureToolInstalled() {
@@ -95,6 +95,6 @@ func handleToolCommand(args []string, action string) {
 	cmdStr := fmt.Sprintf("%s %s %s", utils.GetPackageManager(), action, toolName)
 	err := utils.ExecuteCommand(cmdStr, "")
 	if err != nil {
-		fmt.Printf("Error during %s of tool: %s\n", action, err)
+		fmt.Printf("❌ Error during %s of tool: %s\n", action, err)
 	}
 }

@@ -43,15 +43,31 @@ func init() {
 		&cobra.Command{Use: "open", Run: func(cmd *cobra.Command, args []string) { openProject(args) }},
 		&cobra.Command{Use: "build", Run: func(cmd *cobra.Command, args []string) { buildProject(args) }},
 		&cobra.Command{Use: "start", Run: func(cmd *cobra.Command, args []string) { startProject(args) }},
-		//&cobra.Command{Use: "stop", Run: func(cmd *cobra.Command, args []string) { stopProject(args) }},
 		&cobra.Command{Use: "monitor", Run: func(cmd *cobra.Command, args []string) { monitorProject() }},
 	)
 }
 
+func loadConfig() {
+	config = *utils.GetConfig()
+}
+
+func handleProjectAction(args []string, action func(string)) {
+	loadConfig()
+	if len(args) == 0 {
+		if utils.ConfirmAction("Are you sure you want to run for all projects? This may take some time. (yes/no)") {
+			for projectName := range config.Projects {
+				action(projectName)
+			}
+		}
+	} else {
+		action(args[0])
+	}
+}
+
 // listProjects prints all projects listed in the configuration.
 func listProjects() {
+	loadConfig()
 	fmt.Println("🔍 Loading... Listing projects")
-	config = *utils.GetConfig()
 	for projectName := range config.Projects {
 		fmt.Printf("- %s\n", projectName)
 	}
@@ -81,27 +97,14 @@ func syncSingleProject(projectName string) {
 	fmt.Printf("✅ Synchronized project %s successfully.\n", projectName)
 }
 
-// syncProjects synchronizes all or specific projects.
 func syncProjects(args []string) {
-	fmt.Println("🔄 Loading... Running sync command")
-	config = *utils.GetConfig()
-	if len(args) == 0 {
-		if utils.ConfirmAction("Are you sure you want to sync for all projects? This may take some time. (yes/no)") {
-			for projectName := range config.Projects {
-				syncSingleProject(projectName)
-			}
-		} else {
-			fmt.Println("Sync canceled.")
-		}
-	} else {
-		syncSingleProject(args[0])
-	}
+	handleProjectAction(args, syncSingleProject)
 }
 
 // openProject opens a project in the configured code editor.
 func openProject(args []string) {
+	loadConfig()
 	fmt.Println("🔍 Loading... Opening project")
-	config = *utils.GetConfig()
 	path := config.Home
 	if len(args) > 0 {
 		path = filepath.Join(config.Home, args[0])
@@ -143,27 +146,13 @@ func buildSingleProject(projectName string) {
 	}
 }
 
-// buildProject builds all or specific projects.
 func buildProject(args []string) {
-	fmt.Println("🔨 Loading... Running build command")
-	config = *utils.GetConfig()
-	if len(args) == 0 {
-		if utils.ConfirmAction("Are you sure you want to build for all projects? This may take some time. (yes/no)") {
-			for projectName := range config.Projects {
-				buildSingleProject(projectName)
-			}
-		} else {
-			fmt.Println("Build canceled.")
-		}
-	} else {
-		buildSingleProject(args[0])
-	}
+	handleProjectAction(args, buildSingleProject)
 }
 
 // startSingleProject starts a single project by name.
 func startSingleProject(projectName string) {
 	fmt.Printf("🚀 Starting... Running start command for project %s\n", projectName)
-	config = *utils.GetConfig()
 	project, exists := config.Projects[projectName]
 	if !exists {
 		fmt.Printf("❌ Project %s not found in configuration.\n", projectName)
@@ -190,27 +179,14 @@ func startSingleProject(projectName string) {
 	}
 }
 
-// startProject starts all or specific projects.
 func startProject(args []string) {
-	fmt.Println("🚀 Loading... Running start command")
-	config = *utils.GetConfig()
-	if len(args) == 0 {
-		if utils.ConfirmAction("Are you sure you want to start for all projects? This may take some time. (yes/no)") {
-			for projectName := range config.Projects {
-				startSingleProject(projectName)
-			}
-		} else {
-			fmt.Println("Start canceled.")
-		}
-	} else {
-		startSingleProject(args[0])
-	}
+	handleProjectAction(args, startSingleProject)
 }
 
 // monitorProject prints a table with information about all projects.
 func monitorProject() {
+	loadConfig()
 	fmt.Println("🔍 Monitoring... Fetching project status")
-	config = *utils.GetConfig()
 	utils.LoadProjectPIDs(config.Home, &projectPIDs)
 
 	data := [][]string{
