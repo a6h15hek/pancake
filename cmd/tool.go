@@ -93,10 +93,49 @@ func handleToolCommand(args []string, action string) {
 		return
 	}
 	toolName := args[0]
+	config := *utils.GetConfig()
+
+	switch action {
+	case "install":
+		for _, t := range config.Tools {
+			if t == toolName {
+				fmt.Printf("🔄 Tool '%s' already installed. Updating instead.\n", toolName)
+				action = "upgrade"
+				break
+			}
+		}
+	case "uninstall":
+		found := false
+		for _, t := range config.Tools {
+			if t == toolName {
+				found = true
+				break
+			}
+		}
+		if !found {
+			fmt.Printf("❌ Tool '%s' is not installed. Cannot uninstall.\n", toolName)
+			return
+		}
+	}
+
 	cmdStr := fmt.Sprintf("%s %s %s", utils.GetPackageManager(), action, toolName)
 	err := utils.ExecuteCommand(cmdStr, "")
 	if err != nil {
 		fmt.Printf("❌ Error during %s of tool: %s\n", action, err)
+		return
+	}
+
+	if action == "install" {
+		config.Tools = append(config.Tools, toolName)
+		utils.UpdateConfig(&config)
+	} else if action == "uninstall" {
+		for i, t := range config.Tools {
+			if t == toolName {
+				config.Tools = append(config.Tools[:i], config.Tools[i+1:]...)
+				utils.UpdateConfig(&config)
+				break
+			}
+		}
 	}
 }
 

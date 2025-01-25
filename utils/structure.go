@@ -51,30 +51,24 @@ func GetConfig() *Config {
 	return &config
 }
 
-// func main() {
-//     config := utils.GetConfig()
+func UpdateConfig(config *Config) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Println("Error getting user home directory:", err)
+		return
+	}
+	configPath := filepath.Join(homeDir, "pancake.yml")
 
-//     fmt.Printf("Home Directory: %s\n", config.Home)
-//     fmt.Printf("Code Editor: %s\n", config.CodeEditor)
-//     fmt.Println("Tools:")
-//     for tool, version := range config.Tools {
-//         fmt.Printf("- %s: %s\n", tool, version)
-//     }
-//     fmt.Println("Projects:")
-//     for projectName, project := range config.Projects {
-//         fmt.Printf("- %s\n", projectName)
-//         fmt.Printf("  Remote SSH URL: %s\n", project.RemoteSSHURL)
-//         if project.Type != "" {
-//             fmt.Printf("  Type: %s\n", project.Type)
-//         }
-//         if project.Port != 0 {
-//             fmt.Printf("  Port: %d\n", project.Port)
-//         }
-//         if project.Start != "" {
-//             fmt.Printf("  Start: %s\n", project.Start)
-//         }
-//         if project.Build != "" {
-//             fmt.Printf("  Build: %s\n", project.Build)
-//         }
-//     }
-// }
+	data, err := yaml.Marshal(config)
+	if err != nil {
+		fmt.Println("Error marshaling config data:", err)
+		return
+	}
+
+	err = os.WriteFile(configPath, data, 0644)
+	if err != nil {
+		fmt.Println("Error writing config file:", err)
+		return
+	}
+	fmt.Println("Config file updated successfully.")
+}
