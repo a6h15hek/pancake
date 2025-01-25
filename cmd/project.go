@@ -86,7 +86,7 @@ func syncProjects(args []string) {
 	fmt.Println("🔄 Loading... Running sync command")
 	config = *utils.GetConfig()
 	if len(args) == 0 {
-		if utils.ConfirmAction("sync") {
+		if utils.ConfirmAction("Are you sure you want to sync for all projects? This may take some time. (yes/no)") {
 			for projectName := range config.Projects {
 				syncSingleProject(projectName)
 			}
@@ -148,7 +148,7 @@ func buildProject(args []string) {
 	fmt.Println("🔨 Loading... Running build command")
 	config = *utils.GetConfig()
 	if len(args) == 0 {
-		if utils.ConfirmAction("build") {
+		if utils.ConfirmAction("Are you sure you want to build for all projects? This may take some time. (yes/no)") {
 			for projectName := range config.Projects {
 				buildSingleProject(projectName)
 			}
@@ -195,7 +195,7 @@ func startProject(args []string) {
 	fmt.Println("🚀 Loading... Running start command")
 	config = *utils.GetConfig()
 	if len(args) == 0 {
-		if utils.ConfirmAction("start") {
+		if utils.ConfirmAction("Are you sure you want to start for all projects? This may take some time. (yes/no)") {
 			for projectName := range config.Projects {
 				startSingleProject(projectName)
 			}
@@ -243,7 +243,7 @@ func monitorProject() {
 // 	config = *utils.GetConfig()
 
 // 	if len(args) == 0 {
-// 		if utils.ConfirmAction("stop") {
+// 		if utils.ConfirmAction("Are you sure you want to stop for all projects? This may take some time. (yes/no)") {
 // 			for projectName, pid := range projectPIDs {
 // 				if err := utils.KillProjectByPID(pid); err == nil {
 // 					fmt.Printf("✅ Stopped project %s successfully.\n", projectName)

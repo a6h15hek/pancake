@@ -62,11 +62,11 @@ func PullChanges(path string) {
 }
 
 // ConfirmAction prompts the user to confirm an action.
-func ConfirmAction(action string) bool {
+func ConfirmAction(message string) bool {
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Printf("Are you sure you want to %s for all projects? This may take some time. (yes/no): ", action)
+	fmt.Printf("%s", message)
 	response, _ := reader.ReadString('\n')
-	return strings.TrimSpace(response) == "yes"
+	return strings.TrimSpace(response) == "yes" || strings.TrimSpace(response) == "y"
 }
 
 // ExecuteCommand runs a shell command in a specified directory and prints the command and its logs.
@@ -180,5 +180,57 @@ func LoadProjectPIDs(fileLocation string, projectPIDs *map[string]int) {
 	err = json.Unmarshal(data, projectPIDs)
 	if err != nil {
 		fmt.Printf("❌ Error unmarshaling project PIDs: %v\n", err)
+	}
+}
+
+func SetupChocolatey() {
+	if ConfirmAction("Do you want to proceed with the installation? (yes/no):") {
+		fmt.Println("Installing Chocolatey...")
+		err := ExecuteCommand("Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))", "")
+		if err != nil {
+			fmt.Println("Error installing Chocolatey:", err)
+		}
+	}
+}
+
+func SetupHomebrew() {
+	if ConfirmAction("Do you want to proceed with the installation? (yes/no):") {
+		fmt.Println("Installing Homebrew...")
+		err := ExecuteCommand("/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"", "")
+		if err != nil {
+			fmt.Println("Error installing Homebrew:", err)
+		}
+	}
+}
+
+func EnsureToolInstalled() bool {
+	platform := runtime.GOOS
+	var cmdStr string
+	switch platform {
+	case "windows":
+		cmdStr = "choco -v"
+	case "darwin", "linux":
+		cmdStr = "brew -v"
+	default:
+		fmt.Println("Unsupported platform:", platform)
+		return false
+	}
+	err := ExecuteCommand(cmdStr, "", false)
+	if err != nil {
+		fmt.Printf("%s is not installed. Please run 'pancake tool setup' first.\n", GetPackageManager())
+		return false
+	}
+	return true
+}
+
+func GetPackageManager() string {
+	switch runtime.GOOS {
+	case "windows":
+		return "choco"
+	case "darwin", "linux":
+		return "brew"
+	default:
+		fmt.Println("Unsupported platform:", runtime.GOOS)
+		return ""
 	}
 }
