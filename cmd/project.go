@@ -28,7 +28,7 @@ var projectCmd = &cobra.Command{
 	Use:     "project",
 	Aliases: []string{"p"},
 	Run: func(cmd *cobra.Command, args []string) {
-		listProjects()
+		fmt.Println(utils.ProjectDescription)
 	},
 }
 

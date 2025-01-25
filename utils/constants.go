@@ -29,11 +29,12 @@ const (
 	AppName         = "Pancake"
 	Version         = "v1.0.0"
 	Description     = "A tool to streamline project management workflow."
-	LongDescription = `It's a command line tool to manage the project lifecycle and workflow. 
-    It helps in syncing projects from a remote repository, building and running projects, 
-    and installing tools needed for development. It keeps everything in one place and stores all these 
-    configurations in the pancake.yml file. Sharing this single file enables sharing 
-    your entire developer setup.`
+	LongDescription = `Manage multiple projects' lifecycle and workflow.
+pancake edit-config #Add your project's Git SSH links
+pancake sync #Sync your projects 
+pancake list #List all projects
+pancake project open <project-name> #Open project in default IDE
+And do this from any location`
 )
 
 const (
@@ -66,6 +67,52 @@ projects:
     build: mvn clean install
     start: mvn spring-boot:run
 `
+const (
+	ToolsDescription = `Usage:
+  pancake tool search <TEXT|/REGEX/>
+  pancake tool info [FORMULA|CASK...]
+  pancake tool install <FORMULA|CASK...>
+  pancake tool update
+  pancake tool upgrade [FORMULA|CASK...]
+  pancake tool uninstall <FORMULA|CASK...>
+  pancake tool list [FORMULA|CASK...]
+
+  pancake t search <TEXT|/REGEX/>
+  pancake t info [FORMULA|CASK...]
+  pancake t install <FORMULA|CASK...>
+  pancake t update
+  pancake t upgrade [FORMULA|CASK...]
+  pancake t uninstall <FORMULA|CASK...>
+  pancake t list [FORMULA|CASK...]
+
+Troubleshooting:
+  pancake edit-config
+  pancake version
+
+Further Assistance:
+  Search Brew Packages: https://brew.sh/
+  Search Chocolatey Packages: https://community.chocolatey.org/packages
+  Copy the package name and use with 'pancake tools install <package-name>'`
+
+	ProjectDescription = `Usage:
+  pancake project list
+  pancake project sync [args...]
+  pancake project open [args...]
+  pancake project build [args...]
+  pancake project start [args...]
+  pancake project monitor
+
+  pancake p list
+  pancake p sync [args...]
+  pancake p open [args...]
+  pancake p build [args...]
+  pancake p start
+  pancake p monitor
+
+Troubleshooting:
+  pancake project edit-config
+  pancake project version`
+)
 
 const (
 	Copyright = `Copyright © 2024 Abhishek M. Yadav <abhishekyadav@duck.com>

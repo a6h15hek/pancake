@@ -27,7 +27,7 @@ import (
 var toolCmd = &cobra.Command{
 	Use: "tool",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Please use one of the subcommands: install, uninstall, list, update, search, setup, info, upgrade")
+		fmt.Println(utils.ToolsDescription)
 	},
 }
 
