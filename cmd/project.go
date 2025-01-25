@@ -32,7 +32,6 @@ var projectCmd = &cobra.Command{
 	},
 }
 
-var config utils.Config
 var projectPIDs = make(map[string]int)
 
 func init() {

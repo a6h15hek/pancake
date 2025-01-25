@@ -70,14 +70,24 @@ func ConfirmAction(action string) bool {
 }
 
 // ExecuteCommand runs a shell command in a specified directory and prints the command and its logs.
-func ExecuteCommand(cmdStr, dir string) error {
-	fmt.Printf("> %s\n", cmdStr)
+func ExecuteCommand(cmdStr, dir string, isLogging ...bool) error {
+	logging := true
+	if len(isLogging) > 0 {
+		logging = isLogging[0]
+	}
+
+	if logging {
+		fmt.Printf("> %s\n", cmdStr)
+	}
+
 	cmd := exec.Command("sh", "-c", cmdStr)
 	cmd.Dir = dir
 
-	// Capture and print the command's output and error logs
-	cmd.Stdout = newLoggingWriter()
-	cmd.Stderr = newLoggingWriter()
+	if logging {
+		// Capture and print the command's output and error logs
+		cmd.Stdout = newLoggingWriter()
+		cmd.Stderr = newLoggingWriter()
+	}
 
 	return cmd.Run()
 }
