@@ -49,19 +49,19 @@ home: $HOME/pancake # For MacOS & Linux
 code_editor: code # Preferred code editor (code -> VS Code, idea -> IntelliJ IDE)
 tools:
   - visual-studio-code
-  - tree
+  - maven
+  - node
 projects:
-  june-gpt: 
-    remote_ssh_url: git@github.com:a6h15hek/june-devgpt-desktop.git
+  spring-boot:
+    remote_ssh_url: git@github.com:spring-guides/gs-spring-boot.git
+    run: cd gs-spring-boot/initial && mvn spring-boot:run
+    build: cd gs-spring-boot/initial && mvn clean install
+  june-gpt:
+    remote_ssh_url: git@github.com:suren-atoyan/react-pwa.git
     type: web
-    port: 3000
-    build: npm install
+    port: "3000"
     run: npm start
-
-  spring-helloworld:
-    remote_ssh_url: git@github.com:paulczar/spring-helloworld.git
-    build: mvn clean install
-    run: mvn spring-boot:run
+    build: npm install
 `
 const (
 	ToolsDescription = `Usage:
