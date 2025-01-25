@@ -35,11 +35,11 @@ var toolCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(toolCmd)
 	toolCmd.AddCommand(
-		&cobra.Command{Use: "install", Run: func(cmd *cobra.Command, args []string) { handleToolCommand(args, "install") }},
+		&cobra.Command{Use: "install", Aliases: []string{"i"}, Run: func(cmd *cobra.Command, args []string) { handleToolCommand(args, "install") }},
 		&cobra.Command{Use: "uninstall", Run: func(cmd *cobra.Command, args []string) { handleToolCommand(args, "uninstall") }},
-		&cobra.Command{Use: "list", Run: func(cmd *cobra.Command, args []string) { listTools() }},
+		&cobra.Command{Use: "list", Aliases: []string{"l"}, Run: func(cmd *cobra.Command, args []string) { listTools() }},
 		&cobra.Command{Use: "update", Run: func(cmd *cobra.Command, args []string) { updateTools() }},
-		&cobra.Command{Use: "search", Run: func(cmd *cobra.Command, args []string) { searchTool(args) }},
+		&cobra.Command{Use: "search", Aliases: []string{"s"}, Run: func(cmd *cobra.Command, args []string) { searchTool(args) }},
 		&cobra.Command{Use: "setup", Run: func(cmd *cobra.Command, args []string) { setupTools() }},
 		&cobra.Command{Use: "info", Run: func(cmd *cobra.Command, args []string) { handleToolCommand(args, "info") }},
 		&cobra.Command{Use: "upgrade", Run: func(cmd *cobra.Command, args []string) { handleToolCommand(args, "upgrade") }},

@@ -30,7 +30,7 @@ const (
 	Version         = "v1.0.0"
 	Description     = "A tool to streamline project management workflow."
 	LongDescription = `Manage multiple projects' lifecycle and workflow.
-> pancake edit-config #Add your project's Git SSH links
+> pancake editconfig #Add your project's Git SSH links
 > pancake sync #Sync your projects 
 > pancake list #List all projects
 > pancake project open <project-name> #Open project in default IDE
@@ -65,25 +65,18 @@ projects:
 `
 const (
 	ToolsDescription = `Usage:
-  pancake tool search <TEXT|/REGEX/>
-  pancake tool info [FORMULA|CASK...]
-  pancake tool install <FORMULA|CASK...>
-  pancake tool update
-  pancake tool upgrade [FORMULA|CASK...]
-  pancake tool uninstall <FORMULA|CASK...>
-  pancake tool list [FORMULA|CASK...]
-
-  pancake t search <TEXT|/REGEX/>
-  pancake t info [FORMULA|CASK...]
-  pancake t install <FORMULA|CASK...>
-  pancake t update
-  pancake t upgrade [FORMULA|CASK...]
-  pancake t uninstall <FORMULA|CASK...>
-  pancake t list [FORMULA|CASK...]
+  pancake tool setup [args...]     or  pancake t setup [args...]
+  pancake tool install [args...]   or  pancake t i [args...]
+  pancake tool update              or  pancake t update
+  pancake tool upgrade [args...]   or  pancake t upgrade [args...]
+  pancake tool uninstall [args...] or  pancake t uninstall [args...]
+  pancake tool list [args...]      or  pancake t l [args...]
+  pancake tool search [args...]    or  pancake t s [args...]
+  pancake tool info [args...]      or  pancake t info [args...]
 
 Troubleshooting:
-  pancake edit-config
-  pancake version
+  pancake project editconfig      or pancake p ec
+  pancake project version         or pancake v
 
 Further Assistance:
   Search Brew Packages: https://brew.sh/
@@ -91,23 +84,16 @@ Further Assistance:
   Copy the package name and use with 'pancake tools install <package-name>'`
 
 	ProjectDescription = `Usage:
-  pancake project list
-  pancake project sync [args...]
-  pancake project open [args...]
-  pancake project build [args...]
-  pancake project start [args...]
-  pancake project monitor
-
-  pancake p list
-  pancake p sync [args...]
-  pancake p open [args...]
-  pancake p build [args...]
-  pancake p start
-  pancake p monitor
+  pancake project list            or  pancake p l
+  pancake project sync [args...]  or  pancake p s [args...]
+  pancake project open [args...]  or  pancake p o [args...]
+  pancake project build [args...] or  pancake p b [args...]
+  pancake project run [args...]   or  pancake p r [args...]
+  pancake project monitor         or  pancake p m
 
 Troubleshooting:
-  pancake project edit-config
-  pancake project version`
+  pancake project editconfig      or pancake p ec
+  pancake project version         or pancake v`
 )
 
 const (

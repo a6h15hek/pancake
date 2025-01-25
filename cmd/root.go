@@ -83,12 +83,14 @@ func init() {
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	rootCmd.AddCommand(
 		&cobra.Command{
-			Use: "version",
-			Run: func(cmd *cobra.Command, args []string) { version() },
+			Use:     "version",
+			Aliases: []string{"v"},
+			Run:     func(cmd *cobra.Command, args []string) { version() },
 		},
 		&cobra.Command{
-			Use: "edit-config",
-			Run: func(cmd *cobra.Command, args []string) { editConfig() },
+			Use:     "editconfig",
+			Aliases: []string{"ec"},
+			Run:     func(cmd *cobra.Command, args []string) { editConfig() },
 		},
 	)
 }
