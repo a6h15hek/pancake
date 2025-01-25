@@ -37,7 +37,7 @@ func init() {
 		&cobra.Command{Use: "install", Run: func(cmd *cobra.Command, args []string) { handleToolCommand(args, "install") }},
 		&cobra.Command{Use: "uninstall", Run: func(cmd *cobra.Command, args []string) { handleToolCommand(args, "uninstall") }},
 		&cobra.Command{Use: "list", Run: func(cmd *cobra.Command, args []string) { listTools() }},
-		&cobra.Command{Use: "update", Run: func(cmd *cobra.Command, args []string) { handleToolCommand(args, "update") }},
+		&cobra.Command{Use: "update", Run: func(cmd *cobra.Command, args []string) { updateTools() }},
 		&cobra.Command{Use: "search", Run: func(cmd *cobra.Command, args []string) { searchTool(args) }},
 		&cobra.Command{Use: "setup", Run: func(cmd *cobra.Command, args []string) { setupTools() }},
 		&cobra.Command{Use: "info", Run: func(cmd *cobra.Command, args []string) { handleToolCommand(args, "info") }},
@@ -96,5 +96,16 @@ func handleToolCommand(args []string, action string) {
 	err := utils.ExecuteCommand(cmdStr, "")
 	if err != nil {
 		fmt.Printf("❌ Error during %s of tool: %s\n", action, err)
+	}
+}
+
+func updateTools() {
+	if !utils.EnsureToolInstalled() {
+		return
+	}
+	cmdStr := fmt.Sprintf("%s update", utils.GetPackageManager())
+	err := utils.ExecuteCommand(cmdStr, "")
+	if err != nil {
+		fmt.Println("❌ Error updating tools:", err)
 	}
 }

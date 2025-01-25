@@ -30,10 +30,10 @@ const (
 	Version         = "v1.0.0"
 	Description     = "A tool to streamline project management workflow."
 	LongDescription = `Manage multiple projects' lifecycle and workflow.
-pancake edit-config #Add your project's Git SSH links
-pancake sync #Sync your projects 
-pancake list #List all projects
-pancake project open <project-name> #Open project in default IDE
+> pancake edit-config #Add your project's Git SSH links
+> pancake sync #Sync your projects 
+> pancake list #List all projects
+> pancake project open <project-name> #Open project in default IDE
 And do this from any location`
 )
 
@@ -48,12 +48,8 @@ home: $HOME/pancake # For MacOS & Linux
 
 code_editor: code # Preferred code editor (code -> VS Code, idea -> IntelliJ IDE)
 tools:
-  visual-studio-code: 1.96.2
-  maven: 3.9.9
-  openjdk@21: 21.0.5
-  openjdk@17: 17.0.13
-  node@20: 20.18.1
-  node@22: 22.12.0
+  visual-studio-code: master
+  tree: master
 projects:
   june-gpt: 
     remote_ssh_url: git@github.com:a6h15hek/june-devgpt-desktop.git
