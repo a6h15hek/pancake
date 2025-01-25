@@ -212,38 +212,3 @@ func monitorProject() {
 
 	utils.PrintTable(data)
 }
-
-// stopProject stops a project by name.
-// func stopProject(args []string) {
-// 	fmt.Println("🛑 Stopping... Running stop command")
-// 	config = *utils.GetConfig()
-
-// 	if len(args) == 0 {
-// 		if utils.ConfirmAction("Are you sure you want to stop for all projects? This may take some time. (yes/no)") {
-// 			for projectName, pid := range projectPIDs {
-// 				if err := utils.KillProjectByPID(pid); err == nil {
-// 					fmt.Printf("✅ Stopped project %s successfully.\n", projectName)
-// 					delete(projectPIDs, projectName)
-// 					saveProjectPIDs()
-// 				} else {
-// 					fmt.Printf("❌ Error stopping project %s: %v\n", projectName, err)
-// 				}
-// 			}
-// 		} else {
-// 			fmt.Println("Stop canceled.")
-// 		}
-// 	} else {
-// 		projectName := args[0]
-// 		if pid, exists := projectPIDs[projectName]; exists {
-// 			if err := utils.KillProjectByPID(pid); err == nil {
-// 				fmt.Printf("✅ Stopped project %s successfully.\n", projectName)
-// 				delete(projectPIDs, projectName)
-// 				saveProjectPIDs()
-// 			} else {
-// 				fmt.Printf("❌ Error stopping project %s: %v\n", projectName, err)
-// 			}
-// 		} else {
-// 			fmt.Printf("❌ No running process found for project %s.\n", projectName)
-// 		}
-// 	}
-// }
