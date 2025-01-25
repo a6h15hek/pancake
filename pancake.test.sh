@@ -23,14 +23,14 @@ run_test "go install" "Installing"
 run_test "pancake version" "Checking version"
 
 # Test to check default file create works.
-# if [ -e ~/pancake.yml ]; then
-#     echo "pancake.yml exists. Deleting the file..."
-#     rm ~/pancake.yml
-#     check_status "Delete pancake.yml"
-#     echo "pancake.yml deleted successfully."
-# else
-#     echo "pancake.yml does not exist. No action needed."
-# fi
+if [ -e ~/pancake.yml ]; then
+    echo "pancake.yml exists. Deleting the file..."
+    rm ~/pancake.yml
+    check_status "Delete pancake.yml"
+    echo "pancake.yml deleted successfully."
+else
+    echo "pancake.yml does not exist. No action needed."
+fi
 
 run_test "pancake edit-config" "Opening config file for the first time"
 run_test "pancake edit-config" "Opening config file for the second time"

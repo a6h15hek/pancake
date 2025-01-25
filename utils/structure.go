@@ -12,7 +12,7 @@ import (
 type Config struct {
 	Home       string             `yaml:"home"`
 	CodeEditor string             `yaml:"code_editor"`
-	Tools      map[string]string  `yaml:"tools"`
+	Tools      []string           `yaml:"tools"`
 	Projects   map[string]Project `yaml:"projects"`
 }
 

@@ -48,8 +48,8 @@ home: $HOME/pancake # For MacOS & Linux
 
 code_editor: code # Preferred code editor (code -> VS Code, idea -> IntelliJ IDE)
 tools:
-  visual-studio-code: master
-  tree: master
+  - visual-studio-code
+  - tree
 projects:
   june-gpt: 
     remote_ssh_url: git@github.com:a6h15hek/june-devgpt-desktop.git

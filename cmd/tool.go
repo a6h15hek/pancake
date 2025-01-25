@@ -25,7 +25,8 @@ import (
 )
 
 var toolCmd = &cobra.Command{
-	Use: "tool",
+	Use:     "tool",
+	Aliases: []string{"t"},
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println(utils.ToolsDescription)
 	},
@@ -46,9 +47,9 @@ func init() {
 }
 
 func listTools() {
-	fmt.Println("🔍 Loading... Listing projects")
+	fmt.Println("🔍 Loading... Listing tools")
 	config := *utils.GetConfig()
-	for toolName := range config.Tools {
+	for _, toolName := range config.Tools {
 		fmt.Printf("- %s\n", toolName)
 	}
 }
