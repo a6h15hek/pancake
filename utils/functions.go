@@ -41,8 +41,8 @@ func CloneRepository(path, remoteURL string) {
 		fmt.Printf("Error removing existing folder: %v\n", err)
 		return
 	}
-	cmd := exec.Command("git", "clone", remoteURL, path)
-	err = cmd.Run()
+	cmdStr := fmt.Sprintf("git clone %s %s", remoteURL, path)
+	err = ExecuteCommand(cmdStr, ".", true)
 	if err != nil {
 		fmt.Printf("Error cloning repository: %v\n", err)
 	} else {
@@ -52,8 +52,8 @@ func CloneRepository(path, remoteURL string) {
 
 // PullChanges pulls the latest changes from a git repository.
 func PullChanges(path string) {
-	cmd := exec.Command("git", "-C", path, "pull")
-	err := cmd.Run()
+	cmdStr := "git pull"
+	err := ExecuteCommand(cmdStr, path, true)
 	if err != nil {
 		fmt.Printf("Error pulling latest changes: %v\n", err)
 	} else {
