@@ -32,44 +32,67 @@ var rootCmd = &cobra.Command{
 	Long:  utils.LongDescription,
 }
 
-func version() { fmt.Println("Pancake " + utils.Version) }
+func version() {
+	fmt.Println("Pancake " + utils.Version)
+}
 
 func editConfig() {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Println("Error finding home directory:", err)
+		fmt.Println("❌ Error finding home directory:", err)
 		os.Exit(1)
 	}
 
 	filePath := homeDir + "/pancake.yml"
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		if utils.ConfirmAction("pancake.yml file does not exist. Do you want to create it? (yes/no)") {
-			// Assuming pancake.yml content is stored in a variable `pancakeYAMLContent`
-			pancakeYAMLContent := utils.DefaultYMLContent
-
-			newFile, err := os.Create(filePath)
-			if err != nil {
-				fmt.Println("Error creating pancake.yml file in home directory:", err)
-				os.Exit(1)
-			}
-			defer newFile.Close()
-
-			_, err = newFile.Write([]byte(pancakeYAMLContent))
-			if err != nil {
-				fmt.Println("Error writing content to new pancake.yml file:", err)
-				os.Exit(1)
-			}
-			fmt.Println("pancake.yml file created in home directory.")
-			fmt.Printf("Opening pancake.yml file at: %s\n", filePath)
-			utils.OpenTextFileInDefaultEditor(filePath)
-		} else {
-			fmt.Println("Invalid Input. Command aborted.")
-			os.Exit(1)
-		}
+		fmt.Println("📌 Pancake configuration file does not exist. Do 'pancake init' for initial setup.")
+		os.Exit(1)
 	} else {
-		fmt.Printf("Opening pancake.yml file at: %s\n", filePath)
+		fmt.Printf("✅ Opening pancake.yml file at: %s\n", filePath)
 		utils.OpenTextFileInDefaultEditor(filePath)
 	}
+}
+
+func initCommand() {
+	fmt.Println("🔄 Setup of pancake started...")
+
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Println("❌ Error finding home directory:", err)
+		os.Exit(1)
+	}
+
+	filePath := homeDir + "/pancake.yml"
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		pancakeYAMLContent := utils.DefaultYMLContent
+
+		newFile, err := os.Create(filePath)
+		if err != nil {
+			fmt.Println("❌ Error creating pancake.yml file in home directory:", err)
+			os.Exit(1)
+		}
+		defer newFile.Close()
+
+		_, err = newFile.Write([]byte(pancakeYAMLContent))
+		if err != nil {
+			fmt.Println("❌ Error writing content to new pancake.yml file:", err)
+			os.Exit(1)
+		}
+		fmt.Println("✅ pancake.yml file created in home directory.")
+		fmt.Println("✅ Setup Completed.")
+	} else {
+		fmt.Println("pancake.yml already exists. Using it for configuration:")
+		config := *utils.GetConfig()
+		fmt.Printf("%+v\n", config)
+	}
+
+	// Run the pancake tool setup command
+	err = utils.ExecuteCommand("echo yes | pancake tool setup", homeDir)
+	if err != nil {
+		fmt.Println("❌ Error executing pancake tool setup command:", err)
+		os.Exit(1)
+	}
+	fmt.Println("✅ Pancake tool setup command executed successfully.")
 }
 
 func Execute() {
@@ -91,6 +114,11 @@ func init() {
 			Use:     "editconfig",
 			Aliases: []string{"ec"},
 			Run:     func(cmd *cobra.Command, args []string) { editConfig() },
+		},
+		&cobra.Command{
+			Use:     "init",
+			Aliases: []string{"ec"},
+			Run:     func(cmd *cobra.Command, args []string) { initCommand() },
 		},
 	)
 }
