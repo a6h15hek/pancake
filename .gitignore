@@ -29,3 +29,6 @@ coverage.out
 # Misc
 node_modules/
 .env
+
+# pancake build file.
+pancake
