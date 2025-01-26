@@ -46,7 +46,7 @@ const DefaultYMLContent = `# Pancake Configuration File.
 home: $HOME/pancake # For MacOS & Linux
 #home: '%userprofile%/pancake' # For Windows
 
-code_editor: code # Preferred code editor (code -> VS Code, idea -> IntelliJ IDE)
+code_editor: code . # Preferred code editor (code -> VS Code, idea -> IntelliJ IDE)
 tools:
   - tree
 projects:
