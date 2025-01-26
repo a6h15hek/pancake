@@ -1,13 +1,10 @@
-# This workflow will build a golang project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
-
 name: pancake-go-build
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "master" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "master" ]
 
 jobs:
 
@@ -24,5 +21,17 @@ jobs:
     - name: Build
       run: go build -v ./...
 
-    # - name: Test
-    #   run: go test -v ./...
+    - name: Get version number
+      run: |
+        version_output=$(./pancake version)
+        version=${version_output#Pancake }
+        version=$(echo "$version" | xargs)
+        echo "VERSION=$version" >> $GITHUB_ENV
+
+    - name: Tag release
+      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git tag -a $VERSION -m "Releasing Pancake version $VERSION"
+        git push origin $VERSION
