@@ -190,10 +190,10 @@ func LoadProjectPIDs(fileLocation string, projectPIDs *map[string]int) {
 
 func SetupChocolatey() bool {
 	if ConfirmAction("Do you want to proceed with the installation? (yes/no):") {
-		fmt.Println("Installing Chocolatey...")
+		fmt.Println("📌 Installing Chocolatey...")
 		err := ExecuteCommand("Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))", "")
 		if err != nil {
-			fmt.Println("Error installing Chocolatey:", err)
+			fmt.Println("❌ Error installing Chocolatey:", err)
 		} else {
 			return true
 		}
@@ -203,10 +203,10 @@ func SetupChocolatey() bool {
 
 func SetupHomebrew() bool {
 	if ConfirmAction("Do you want to proceed with the installation? (yes/no):") {
-		fmt.Println("Installing Homebrew...")
+		fmt.Println("📌 Installing Homebrew...")
 		err := ExecuteCommand("/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"", "")
 		if err != nil {
-			fmt.Println("Error installing Homebrew:", err)
+			fmt.Println("❌ Error installing Homebrew:", err)
 		} else {
 			return true
 		}

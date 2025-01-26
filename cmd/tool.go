@@ -60,10 +60,10 @@ func setupTools() {
 
 	switch platform {
 	case "windows":
-		fmt.Println("The Pancake uses Chocolatey internally.")
+		fmt.Println("📌 The Pancake uses Chocolatey internally.")
 		success = utils.SetupChocolatey()
 	case "darwin", "linux":
-		fmt.Println("The Pancake uses Homebrew internally.")
+		fmt.Println("📌 The Pancake uses Homebrew internally.")
 		success = utils.SetupHomebrew()
 	default:
 		fmt.Println("❌ Unsupported platform:", platform)
