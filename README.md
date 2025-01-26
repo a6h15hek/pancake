@@ -1,5 +1,8 @@
 # Pancake: Developer Command Line Tool
 
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/a6h15hek/pancake)
+![GitHub](https://img.shields.io/github/license/a6h15hek/pancake)
+
 Streamlines your project management workflow, simplifies syncing multiple projects from remote repositories, helps build and run projects on a local machine, and allows for the installation, uninstallation, and updating of development software and tools. No need to remember longer commands. Share your entire development setup with your work buddies or back up your entire development setup by sharing `$HOME/pancake.yml`.
 
 ```sh

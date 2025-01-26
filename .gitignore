@@ -32,3 +32,5 @@ node_modules/
 
 # pancake build file.
 pancake
+/build
+build-v*.zip
