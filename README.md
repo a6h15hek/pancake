@@ -16,7 +16,7 @@ It keeps all project files in the `$HOME/pancake` folder. Sharing this single fi
 
 For migration and sharing projects, just copy pancake.yml to your user home location and run:
 ```bash
-pancake init
+$ pancake init
 ```
 Everything your project needs will be installed. All the build and run configurations will already be in the configuration file, and it will sync the project from your remote repository all at once.
 
@@ -30,7 +30,7 @@ $ pancake tool       # prints all tool commands
 Another feature in development is Pancake GPT, which allows users to write commands in natural language and convert them into actual commands. It utilizes GPT models to understand the user's natural language input, interpret it, create a corresponding command, and execute it.
 
 ```bash
-pancake gpt <user_description_of_command>
+$ pancake gpt <user_description_of_command>
 ```
 
 # Developer Documentation
