@@ -27,6 +27,18 @@ $ pancake project    # prints all project commands
 $ pancake tool       # prints all tool commands
 ```
 
+### Creating an Alias for Pancake
+Windows (PowerShell) \
+Step 1: Open PowerShell profile and Run: `notepad $PROFILE` \
+Step 2: Add: `Set-Alias pc pancake` \
+Step 3: Save, close and Run Command: `. $PROFILE` 
+
+macOS and Linux \
+Step 1: Open shell config file: `nano ~/.bashrc` \
+Step 2: Add: `alias pc='pancake'` \
+Step 3: Save, reload: `source ~/.bashrc` \
+
+
 Another feature in development is Pancake GPT, which allows users to write commands in natural language and convert them into actual commands. It utilizes GPT models to understand the user's natural language input, interpret it, create a corresponding command, and execute it.
 
 ```bash
@@ -70,9 +82,7 @@ home: $HOME/pancake # For MacOS & Linux
 
 code_editor: code # Preferred code editor (code -> VS Code, idea -> IntelliJ IDE)
 tools:
-  - visual-studio-code
-  - maven
-  - node
+  - tree
 projects:
   spring-boot:
     remote_ssh_url: git@github.com:spring-guides/gs-spring-boot.git
