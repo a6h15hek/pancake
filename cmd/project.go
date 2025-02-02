@@ -78,7 +78,7 @@ func syncSingleProject(projectName string) {
 	project, exists := config.Projects[projectName]
 	if !exists {
 		fmt.Printf("❌ Project %s not found in configuration.\n", projectName)
-		fmt.Printf(utils.ProjectErrorAddConfig)
+		fmt.Printf("%s\n", utils.ProjectErrorAddConfig)
 		return
 	}
 
@@ -114,8 +114,8 @@ func openProject(args []string) {
 	err := utils.ExecuteCommand(config.CodeEditor, path)
 	if err != nil {
 		fmt.Printf("❌ Error opening project: %v\n", err)
-		fmt.Printf(utils.ProjectErrorAddConfig)
-		fmt.Printf(utils.ProjectErrorSync)
+		fmt.Printf("%s\n", utils.ProjectErrorAddConfig)
+		fmt.Printf("%s\n", utils.ProjectErrorSync)
 	} else {
 		fmt.Printf("✅ Opened project at %s\n", path)
 	}
@@ -127,20 +127,20 @@ func buildSingleProject(projectName string) {
 	project, exists := config.Projects[projectName]
 	if !exists {
 		fmt.Printf("❌ Project %s not found in configuration.\n", projectName)
-		fmt.Printf(utils.ProjectErrorAddConfig)
+		fmt.Printf("%s\n", utils.ProjectErrorAddConfig)
 		return
 	}
 
 	projectPath := filepath.Join(config.Home, projectName)
 	if !utils.CheckExists(projectPath) {
 		fmt.Printf("❌ Project path %s does not exist.\n", projectPath)
-		fmt.Printf(utils.ProjectErrorSync)
+		fmt.Printf("%s\n", utils.ProjectErrorSync)
 		return
 	}
 
 	if project.Build == "" {
 		fmt.Println("❌ Build command not specified in the configuration.")
-		fmt.Printf(utils.ProjectErrorAddCommand)
+		fmt.Printf("%s\n", utils.ProjectErrorAddCommand)
 		return
 	}
 
@@ -162,20 +162,20 @@ func runSingleProject(projectName string) {
 	project, exists := config.Projects[projectName]
 	if !exists {
 		fmt.Printf("❌ Project %s not found in configuration.\n", projectName)
-		fmt.Printf(utils.ProjectErrorAddConfig)
+		fmt.Printf("%s\n", utils.ProjectErrorAddConfig)
 		return
 	}
 
 	projectPath := filepath.Join(config.Home, projectName)
 	if !utils.CheckExists(projectPath) {
 		fmt.Printf("❌ Project path %s does not exist.\n", projectPath)
-		fmt.Printf(utils.ProjectErrorAddConfig)
+		fmt.Printf("%s\n", utils.ProjectErrorAddConfig)
 		return
 	}
 
 	if project.Run == "" {
 		fmt.Println("❌ Run command not specified in the configuration.")
-		fmt.Printf(utils.ProjectErrorAddCommand)
+		fmt.Printf("%s\n", utils.ProjectErrorAddCommand)
 		return
 	}
 
