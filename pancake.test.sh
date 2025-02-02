@@ -32,8 +32,8 @@ else
     echo "pancake.yml does not exist. No action needed."
 fi
 
-run_test "pancake editconfig" "Opening config file for the first time"
-run_test "pancake editconfig" "Opening config file for the second time"
+run_test "pancake edit config" "Opening config file for the first time"
+run_test "pancake edit config" "Opening config file for the second time"
 run_test "pancake project list" "Listing projects"
 
 run_test "pancake project sync spring-helloworld" "Sync 1 projects"

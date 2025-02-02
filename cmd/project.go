@@ -37,14 +37,18 @@ var projectPIDs = make(map[string]int)
 func init() {
 	rootCmd.AddCommand(projectCmd)
 
-	projectCmd.AddCommand(
-		&cobra.Command{Use: "list", Aliases: []string{"l"}, Run: func(cmd *cobra.Command, args []string) { listProjects() }},
-		&cobra.Command{Use: "sync", Aliases: []string{"s"}, Run: func(cmd *cobra.Command, args []string) { syncProjects(args) }},
-		&cobra.Command{Use: "open", Aliases: []string{"o"}, Run: func(cmd *cobra.Command, args []string) { openProject(args) }},
-		&cobra.Command{Use: "build", Aliases: []string{"b"}, Run: func(cmd *cobra.Command, args []string) { buildProject(args) }},
-		&cobra.Command{Use: "run", Aliases: []string{"r"}, Run: func(cmd *cobra.Command, args []string) { runProject(args) }},
-		&cobra.Command{Use: "monitor", Aliases: []string{"m"}, Run: func(cmd *cobra.Command, args []string) { monitorProject() }},
-	)
+	var commandList = []*cobra.Command{
+		{Use: "list", Aliases: []string{"l"}, Run: func(cmd *cobra.Command, args []string) { listProjects() }},
+		{Use: "sync", Aliases: []string{"s"}, Run: func(cmd *cobra.Command, args []string) { syncProjects(args) }},
+		{Use: "open", Aliases: []string{"o"}, Run: func(cmd *cobra.Command, args []string) { openProject(args) }},
+		{Use: "build", Aliases: []string{"b"}, Run: func(cmd *cobra.Command, args []string) { buildProject(args) }},
+		{Use: "run", Aliases: []string{"r"}, Run: func(cmd *cobra.Command, args []string) { runProject(args) }},
+		{Use: "monitor", Aliases: []string{"m"}, Run: func(cmd *cobra.Command, args []string) { monitorProject() }},
+	}
+
+	projectCmd.AddCommand(commandList...)
+	// Add the same commands to rootCmd
+	rootCmd.AddCommand(commandList...)
 }
 
 func loadConfig() {
@@ -78,6 +82,7 @@ func syncSingleProject(projectName string) {
 	project, exists := config.Projects[projectName]
 	if !exists {
 		fmt.Printf("❌ Project %s not found in configuration.\n", projectName)
+		fmt.Printf("%s\n", utils.ProjectErrorAddConfig)
 		return
 	}
 
@@ -113,6 +118,8 @@ func openProject(args []string) {
 	err := utils.ExecuteCommand(config.CodeEditor, path)
 	if err != nil {
 		fmt.Printf("❌ Error opening project: %v\n", err)
+		fmt.Printf("%s\n", utils.ProjectErrorAddConfig)
+		fmt.Printf("%s\n", utils.ProjectErrorSync)
 	} else {
 		fmt.Printf("✅ Opened project at %s\n", path)
 	}
@@ -124,17 +131,20 @@ func buildSingleProject(projectName string) {
 	project, exists := config.Projects[projectName]
 	if !exists {
 		fmt.Printf("❌ Project %s not found in configuration.\n", projectName)
+		fmt.Printf("%s\n", utils.ProjectErrorAddConfig)
 		return
 	}
 
 	projectPath := filepath.Join(config.Home, projectName)
 	if !utils.CheckExists(projectPath) {
 		fmt.Printf("❌ Project path %s does not exist.\n", projectPath)
+		fmt.Printf("%s\n", utils.ProjectErrorSync)
 		return
 	}
 
 	if project.Build == "" {
 		fmt.Println("❌ Build command not specified in the configuration.")
+		fmt.Printf("%s\n", utils.ProjectErrorAddCommand)
 		return
 	}
 
@@ -156,17 +166,20 @@ func runSingleProject(projectName string) {
 	project, exists := config.Projects[projectName]
 	if !exists {
 		fmt.Printf("❌ Project %s not found in configuration.\n", projectName)
+		fmt.Printf("%s\n", utils.ProjectErrorAddConfig)
 		return
 	}
 
 	projectPath := filepath.Join(config.Home, projectName)
 	if !utils.CheckExists(projectPath) {
 		fmt.Printf("❌ Project path %s does not exist.\n", projectPath)
+		fmt.Printf("%s\n", utils.ProjectErrorAddConfig)
 		return
 	}
 
 	if project.Run == "" {
 		fmt.Println("❌ Run command not specified in the configuration.")
+		fmt.Printf("%s\n", utils.ProjectErrorAddCommand)
 		return
 	}
 

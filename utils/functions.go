@@ -82,7 +82,7 @@ func ExecuteCommand(cmdStr, dir string, isLogging ...bool) error {
 	}
 
 	if logging {
-		fmt.Printf("> %s\n", cmdStr)
+		fmt.Printf("%s > %s\n", dir, cmdStr)
 	}
 
 	cmd := exec.Command("sh", "-c", cmdStr)
