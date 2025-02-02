@@ -27,26 +27,27 @@ Everything your project needs will be installed. All the build and run configura
 ## Installation
 
 ### Macos & Linux 
-Install
+To install the tool on macOS or Linux, run the following command in your terminal:
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/a6h15hek/pancake/main/macos_linux.sh)" install
 ```
-Uninstall
+To uninstall the tool, use the following command:
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/a6h15hek/pancake/main/macos_linux.sh)" uninstall
 ```
 
 ### Windows
-Install
+To install the tool on Windows, open PowerShell and run the following command:
 ```powershell
 Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/a6h15hek/pancake/main/windows.ps1')) install
 ```
 
-Uninstall
+To uninstall the tool, use the following command in PowerShell:
 ```powershell
 Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/a6h15hek/pancake/main/windows.ps1')) uninstall
 ```
 
+### Using Go
 You can install the tool using `go install`:
 
 ```bash
