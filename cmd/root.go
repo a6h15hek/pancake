@@ -29,7 +29,9 @@ var config utils.Config
 var rootCmd = &cobra.Command{
 	Use:   "pancake",
 	Short: utils.Description,
-	Long:  utils.LongDescription,
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Print(utils.LongDescription)
+	},
 }
 
 func version() {

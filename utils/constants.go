@@ -27,14 +27,24 @@ package utils
 
 const (
 	AppName         = "Pancake"
-	Version         = "v1.0.0"
+	Version         = "v1.1.0"
 	Description     = "A tool to streamline project management workflow."
-	LongDescription = `Manage multiple projects' lifecycle and workflow.
-> pancake edit config #Add your project's Git SSH links
-> pancake sync #Sync your projects 
-> pancake list #List all projects
-> pancake project open <project-name> #Open project in default IDE
-And do this from any location`
+	LongDescription = `Example Usage:
+  pancake list 
+  pancake sync [PROJECT_NAME]
+  pancake open [PROJECT_NAME]
+  pancake build [PROJECT_NAME]
+  pancake run [PROJECT_NAME]
+  pancake edit config 
+
+Troubleshooting:
+  pancake edit config             or pancake p ec
+  pancake version                 or pancake v
+
+Further help:
+  pancake help
+  https://github.com/a6h15hek/pancake/blob/main/Usage.md
+`
 )
 
 const (
@@ -63,9 +73,9 @@ projects:
 `
 const (
 	ToolsDescription = `Usage:
-  pancake tool setup                                                    or  pancake t setup [args...]
-  pancake tool [install|upgrade|uninstall|list|search|info] [args...]   or  pancake t [i|upgrade|uninstall|l|s|info] [args...]
-  pancake tool update                                                   or  pancake t update
+  pancake tool setup                                                      or  pancake t setup
+  pancake tool [install|upgrade|uninstall|list|search|info] <tool_name>   or  pancake t [i|upgrade|uninstall|l|s|info] <tool_name>
+  pancake tool update                                                     or  pancake t update
 
 Troubleshooting:
   pancake edit config             or pancake p ec
@@ -77,16 +87,16 @@ Further Assistance:
   Copy the package name and use with 'pancake tools install <package-name>'`
 
 	ProjectDescription = `Usage:
-  pancake list                             or  pancake [project|p] l
-  pancake [sync|open|build|run] [args...]  or  pancake [project|p] [s|o|b|r] [args...]
-  pancake monitor                          or  pancake [project|p] m
+  pancake list                                     or  pancake [project|p] l
+  pancake [sync|open|build|run|pwd] <project_name> or  pancake [project|p] [s|o|b|r|p] <project_name>
+  pancake monitor                                  or  pancake [project|p] m
 
 Troubleshooting:
   pancake edit config             or pancake p ec
   pancake version                 or pancake v`
 
 	ProjectErrorAddConfig  = `Run 'pancake edit config' to check if project exists in configuration file`
-	ProjectErrorSync       = `Run 'pancake project sync <project_name>' to sync the project.`
+	ProjectErrorSync       = `Run 'pancake sync <project_name>' to sync the project.`
 	ProjectErrorAddCommand = `Run 'pancake edit config' to add commands.`
 )
 

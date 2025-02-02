@@ -8,12 +8,13 @@ Streamlines your project management workflow, simplifies syncing multiple projec
 ```sh
 $ pancake list                  # View the list of all projects you are working on
 $ pancake sync                  # Sync multiple projects from the remote repository 
+$ pancake open <project_name>   # Open a specific project in IDE mentioned in config file
 $ pancake build <project_name>  # Build a project
 $ pancake run <project_name>    # Start a project on the local machine
 $ pancake monitor               # Show details about the port, process PID, and uptime
 
-$ pancake tool install tree             # Install a tool via pancake 
-$ pancake tool upgrade tree             # Update tools via pancake
+$ pancake tool install tree     # Install a tool via pancake 
+$ pancake tool upgrade tree     # Update tools via pancake
 ```
 It keeps all project files in the `$HOME/pancake` folder. Sharing this single file enables the sharing of your entire developer setup, making backups and migration from one machine to another easy.
 
@@ -22,6 +23,33 @@ For migration and sharing projects, just copy pancake.yml to your user home loca
 $ pancake init
 ```
 Everything your project needs will be installed. All the build and run configurations will already be in the configuration file, and it will sync the project from your remote repository all at once.
+
+## Installation
+
+Macos & Linux
+```bash
+# Install
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/a6h15hek/pancake/main/macos_linux.sh)" install
+
+# Uninstall
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/a6h15hek/pancake/main/macos_linux.sh)" uninstall
+```
+
+Windows
+```powershell
+# Install
+Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/a6h15hek/pancake/main/windows.ps1')) install
+
+# Uninstall
+Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/a6h15hek/pancake/main/windows.ps1')) uninstall
+```
+
+You can install the tool using `go install`:
+
+```bash
+go install github.com/a6h15hek/pancake@latest
+```
+Alternatively, download the pre-built binaries from the [Releases page](https://github.com/a6h15hek/pancake/releases).
 
 ## Learn More
 ```sh
@@ -97,6 +125,13 @@ projects:
     port: "3000"
     run: npm start
     build: npm install
+```
+
+### Build Binaries
+```bash
+GOOS=linux GOARCH=amd64 go build -o pancake-linux-amd64
+GOOS=darwin GOARCH=amd64 go build -o pancake-darwin-amd64
+GOOS=windows GOARCH=amd64 go build -o pancake-windows-amd64.exe
 ```
 
 Thank you for visiting the Pancake repository! Feel free to fork and 🌟 the repository!

@@ -1,5 +1,5 @@
 ================================================================================
-                Pancake: Developer Command Line Tool v1.0.0
+                Pancake: Developer Command Line Tool
 ================================================================================
 
 Thank you for installing Pancake! This document provides important 
@@ -22,16 +22,6 @@ your entire development setup by sharing `$HOME/pancake.yml`.
 ---------------------------------------------------------------------------------
 
 No specific requirements. Pancake runs on macOS, Linux, and Windows.
-
----------------------------------------------------------------------------------
-3. INSTALLATION INSTRUCTIONS
----------------------------------------------------------------------------------
-
-To install Pancake, follow these steps:
-
-1. Copy the Pancake file.
-2. Add the file to a bin directory.
-3. Run the `pancake` command to ensure proper installation.
 
 ---------------------------------------------------------------------------------
 4. FEATURES
@@ -69,7 +59,7 @@ If you encounter any issues, try the following steps:
 For support, you can reach us through:
 
 - Email: abhishekyadav@duck.com
-- Website: [Abhishek Yadav](https://abhishek-me.web.app/)
+- Website: [Abhishek Yadav](https://theabhishekmyadav.web.app/)
 
 ---------------------------------------------------------------------------------
 7. LICENSE AGREEMENT
