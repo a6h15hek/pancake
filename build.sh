@@ -20,6 +20,13 @@ fi
 # Create build directory
 BUILD_DIR="./build"
 log "Starting Pancake build..."
+
+# Check if build directory exists and delete it
+if [ -d "$BUILD_DIR" ]; then
+    log "Build directory exists. Deleting $BUILD_DIR..."
+    rm -rf "$BUILD_DIR" || handle_error "Failed to delete existing build directory."
+fi
+
 log "Creating build directory: $BUILD_DIR"
 mkdir -p "$BUILD_DIR" || handle_error "Failed to create build directory."
 
