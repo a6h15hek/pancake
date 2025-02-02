@@ -63,18 +63,13 @@ projects:
 `
 const (
 	ToolsDescription = `Usage:
-  pancake tool setup [args...]     or  pancake t setup [args...]
-  pancake tool install [args...]   or  pancake t i [args...]
-  pancake tool update              or  pancake t update
-  pancake tool upgrade [args...]   or  pancake t upgrade [args...]
-  pancake tool uninstall [args...] or  pancake t uninstall [args...]
-  pancake tool list [args...]      or  pancake t l [args...]
-  pancake tool search [args...]    or  pancake t s [args...]
-  pancake tool info [args...]      or  pancake t info [args...]
+  pancake tool setup                                                    or  pancake t setup [args...]
+  pancake tool [install|upgrade|uninstall|list|search|info] [args...]   or  pancake t [i|upgrade|uninstall|l|s|info] [args...]
+  pancake tool update                                                   or  pancake t update
 
 Troubleshooting:
   pancake edit config             or pancake p ec
-  pancake project version         or pancake v
+  pancake version                 or pancake v
 
 Further Assistance:
   Search Brew Packages: https://brew.sh/
@@ -82,16 +77,13 @@ Further Assistance:
   Copy the package name and use with 'pancake tools install <package-name>'`
 
 	ProjectDescription = `Usage:
-  pancake project list            or  pancake p l
-  pancake project sync [args...]  or  pancake p s [args...]
-  pancake project open [args...]  or  pancake p o [args...]
-  pancake project build [args...] or  pancake p b [args...]
-  pancake project run [args...]   or  pancake p r [args...]
-  pancake project monitor         or  pancake p m
+  pancake project list                             or  pancake p l
+  pancake project [sync|open|build|run] [args...]  or  pancake p [s|o|b|r] [args...]
+  pancake project monitor                          or  pancake p m
 
 Troubleshooting:
   pancake edit config             or pancake p ec
-  pancake project version         or pancake v`
+  pancake version                 or pancake v`
 
 	ProjectErrorAddConfig  = `Run 'pancake edit config' to check if project exists in configuration file`
 	ProjectErrorSync       = `Run 'pancake project sync <project_name>' to sync the project.`
