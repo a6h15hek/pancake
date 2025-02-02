@@ -6,11 +6,11 @@
 Streamlines your project management workflow, simplifies syncing multiple projects from remote repositories, helps build and run projects on a local machine, and allows for the installation, uninstallation, and updating of development software and tools. No need to remember longer commands. Share your entire development setup with your work buddies or back up your entire development setup by sharing `$HOME/pancake.yml`.
 
 ```sh
-$ pancake project list                  # View the list of all projects you are working on
-$ pancake project sync                  # Sync multiple projects from the remote repository 
-$ pancake project build <project_name>  # Build a project
-$ pancake project run <project_name>    # Start a project on the local machine
-$ pancake project monitor               # Show details about the port, process PID, and uptime
+$ pancake list                  # View the list of all projects you are working on
+$ pancake sync                  # Sync multiple projects from the remote repository 
+$ pancake build <project_name>  # Build a project
+$ pancake run <project_name>    # Start a project on the local machine
+$ pancake monitor               # Show details about the port, process PID, and uptime
 
 $ pancake tool install tree             # Install a tool via pancake 
 $ pancake tool upgrade tree             # Update tools via pancake
