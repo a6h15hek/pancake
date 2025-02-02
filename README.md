@@ -13,8 +13,8 @@ $ pancake build <project_name>  # Build a project
 $ pancake run <project_name>    # Start a project on the local machine
 $ pancake monitor               # Show details about the port, process PID, and uptime
 
-$ pancake tool install tree             # Install a tool via pancake 
-$ pancake tool upgrade tree             # Update tools via pancake
+$ pancake tool install tree     # Install a tool via pancake 
+$ pancake tool upgrade tree     # Update tools via pancake
 ```
 It keeps all project files in the `$HOME/pancake` folder. Sharing this single file enables the sharing of your entire developer setup, making backups and migration from one machine to another easy.
 
@@ -23,6 +23,15 @@ For migration and sharing projects, just copy pancake.yml to your user home loca
 $ pancake init
 ```
 Everything your project needs will be installed. All the build and run configurations will already be in the configuration file, and it will sync the project from your remote repository all at once.
+
+## Installation
+
+You can install the tool using `go install`:
+
+```bash
+go install github.com/a6h15hek/pancake@latest
+```
+Alternatively, download the pre-built binaries from the [Releases page](https://github.com/a6h15hek/pancake/releases).
 
 ## Learn More
 ```sh
