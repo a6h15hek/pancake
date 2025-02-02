@@ -109,6 +109,13 @@ projects:
     build: npm install
 ```
 
+### Build Binaries
+```bash
+GOOS=linux GOARCH=amd64 go build -o pancake-linux-amd64
+GOOS=darwin GOARCH=amd64 go build -o pancake-darwin-amd64
+GOOS=windows GOARCH=amd64 go build -o pancake-windows-amd64.exe
+```
+
 Thank you for visiting the Pancake repository! Feel free to fork and 🌟 the repository!
 
 
