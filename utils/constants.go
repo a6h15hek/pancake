@@ -92,6 +92,10 @@ Further Assistance:
 Troubleshooting:
   pancake edit config             or pancake p ec
   pancake project version         or pancake v`
+
+	ProjectErrorAddConfig  = `Run 'pancake edit config' to check if project exists in configuration file`
+	ProjectErrorSync       = `Run 'pancake project sync <project_name>' to sync the project.`
+	ProjectErrorAddCommand = `Run 'pancake edit config' to add commands.`
 )
 
 const (
