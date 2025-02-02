@@ -30,7 +30,7 @@ const (
 	Version         = "v1.0.0"
 	Description     = "A tool to streamline project management workflow."
 	LongDescription = `Manage multiple projects' lifecycle and workflow.
-> pancake editconfig #Add your project's Git SSH links
+> pancake edit config #Add your project's Git SSH links
 > pancake sync #Sync your projects 
 > pancake list #List all projects
 > pancake project open <project-name> #Open project in default IDE
@@ -73,7 +73,7 @@ const (
   pancake tool info [args...]      or  pancake t info [args...]
 
 Troubleshooting:
-  pancake project editconfig      or pancake p ec
+  pancake edit config             or pancake p ec
   pancake project version         or pancake v
 
 Further Assistance:
@@ -90,7 +90,7 @@ Further Assistance:
   pancake project monitor         or  pancake p m
 
 Troubleshooting:
-  pancake project editconfig      or pancake p ec
+  pancake edit config             or pancake p ec
   pancake project version         or pancake v`
 )
 
