@@ -4,8 +4,6 @@ This document provides information on the available commands for this project.
 
 ## Commands
 
-### Commands
-
 | Command               | Aliases | Description                                      |
 | --------------------- | ------- | ------------------------------------------------ |
 | `pancake version`     | `v`     | Print the version of the pancake in your machine |
