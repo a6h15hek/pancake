@@ -30,7 +30,7 @@ var rootCmd = &cobra.Command{
 	Use:   "pancake",
 	Short: utils.Description,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(utils.LongDescription)
+		fmt.Print(utils.LongDescription)
 	},
 }
 
