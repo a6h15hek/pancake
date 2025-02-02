@@ -75,6 +75,7 @@ func listProjects() {
 	for projectName := range config.Projects {
 		fmt.Printf("- %s\n", projectName)
 	}
+	fmt.Printf("\nTip: Run 'pancake sync <project_name>' to sync your project with the remote repository.\n")
 }
 
 // syncSingleProject synchronizes a single project by name.
@@ -100,6 +101,8 @@ func syncSingleProject(projectName string) {
 		utils.PullChanges(projectPath)
 	}
 	fmt.Printf("✅ Synchronized project %s successfully.\n", projectName)
+	fmt.Printf("\nTip: Run 'pancake open <project_name>' to open the specified project in your preferred IDE.\n")
+
 }
 
 func syncProjects(args []string) {
@@ -122,6 +125,8 @@ func openProject(args []string) {
 		fmt.Printf("%s\n", utils.ProjectErrorSync)
 	} else {
 		fmt.Printf("✅ Opened project at %s\n", path)
+		fmt.Printf("\nTip: \n- Run 'pancake build <project_name>' to build your project.\n")
+		fmt.Printf("- Run 'pancake start <project_name>' to start the project locally.")
 	}
 }
 
@@ -153,6 +158,7 @@ func buildSingleProject(projectName string) {
 		fmt.Printf("❌ Error building project %v: %v\n", projectName, err)
 	} else {
 		fmt.Printf("✅ Built project %s successfully.\n", projectName)
+		fmt.Printf("\nTip: Run 'pancake start <project_name>' to start the project locally.\n")
 	}
 }
 
