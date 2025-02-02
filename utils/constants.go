@@ -29,12 +29,22 @@ const (
 	AppName         = "Pancake"
 	Version         = "v1.0.0"
 	Description     = "A tool to streamline project management workflow."
-	LongDescription = `Manage multiple projects' lifecycle and workflow.
-> pancake edit config #Add your project's Git SSH links
-> pancake sync #Sync your projects 
-> pancake list #List all projects
-> pancake project open <project-name> #Open project in default IDE
-And do this from any location`
+	LongDescription = `Example Usage:
+  pancake list 
+  pancake sync [PROJECT_NAME]
+  pancake open [PROJECT_NAME]
+  pancake build [PROJECT_NAME]
+  pancake run [PROJECT_NAME]
+  pancake edit config 
+
+Troubleshooting:
+  pancake edit config             or pancake p ec
+  pancake version                 or pancake v
+
+Further help:
+  pancake help
+  https://github.com/a6h15hek/pancake/blob/main/Usage.md
+`
 )
 
 const (
