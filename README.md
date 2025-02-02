@@ -26,21 +26,24 @@ Everything your project needs will be installed. All the build and run configura
 
 ## Installation
 
-Macos & Linux
+### Macos & Linux 
+Install
 ```bash
-# Install
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/a6h15hek/pancake/main/macos_linux.sh)" install
-
-# Uninstall
+```
+Uninstall
+```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/a6h15hek/pancake/main/macos_linux.sh)" uninstall
 ```
 
-Windows
+### Windows
+Install
 ```powershell
-# Install
 Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/a6h15hek/pancake/main/windows.ps1')) install
+```
 
-# Uninstall
+Uninstall
+```powershell
 Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/a6h15hek/pancake/main/windows.ps1')) uninstall
 ```
 
