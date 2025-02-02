@@ -26,6 +26,24 @@ Everything your project needs will be installed. All the build and run configura
 
 ## Installation
 
+Macos & Linux
+```bash
+# Install
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/a6h15hek/pancake/main/macos_linux.sh)" install
+
+# Uninstall
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/a6h15hek/pancake/main/macos_linux.sh)" uninstall
+```
+
+Windows
+```powershell
+# Install
+Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/a6h15hek/pancake/main/windows.ps1')) install
+
+# Uninstall
+Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/a6h15hek/pancake/main/windows.ps1')) uninstall
+```
+
 You can install the tool using `go install`:
 
 ```bash
