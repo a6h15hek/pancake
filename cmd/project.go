@@ -37,14 +37,18 @@ var projectPIDs = make(map[string]int)
 func init() {
 	rootCmd.AddCommand(projectCmd)
 
-	projectCmd.AddCommand(
-		&cobra.Command{Use: "list", Aliases: []string{"l"}, Run: func(cmd *cobra.Command, args []string) { listProjects() }},
-		&cobra.Command{Use: "sync", Aliases: []string{"s"}, Run: func(cmd *cobra.Command, args []string) { syncProjects(args) }},
-		&cobra.Command{Use: "open", Aliases: []string{"o"}, Run: func(cmd *cobra.Command, args []string) { openProject(args) }},
-		&cobra.Command{Use: "build", Aliases: []string{"b"}, Run: func(cmd *cobra.Command, args []string) { buildProject(args) }},
-		&cobra.Command{Use: "run", Aliases: []string{"r"}, Run: func(cmd *cobra.Command, args []string) { runProject(args) }},
-		&cobra.Command{Use: "monitor", Aliases: []string{"m"}, Run: func(cmd *cobra.Command, args []string) { monitorProject() }},
-	)
+	var commandList = []*cobra.Command{
+		{Use: "list", Aliases: []string{"l"}, Run: func(cmd *cobra.Command, args []string) { listProjects() }},
+		{Use: "sync", Aliases: []string{"s"}, Run: func(cmd *cobra.Command, args []string) { syncProjects(args) }},
+		{Use: "open", Aliases: []string{"o"}, Run: func(cmd *cobra.Command, args []string) { openProject(args) }},
+		{Use: "build", Aliases: []string{"b"}, Run: func(cmd *cobra.Command, args []string) { buildProject(args) }},
+		{Use: "run", Aliases: []string{"r"}, Run: func(cmd *cobra.Command, args []string) { runProject(args) }},
+		{Use: "monitor", Aliases: []string{"m"}, Run: func(cmd *cobra.Command, args []string) { monitorProject() }},
+	}
+
+	projectCmd.AddCommand(commandList...)
+	// Add the same commands to rootCmd
+	rootCmd.AddCommand(commandList...)
 }
 
 func loadConfig() {

@@ -116,9 +116,8 @@ func init() {
 			Run:     func(cmd *cobra.Command, args []string) { editConfig() },
 		},
 		&cobra.Command{
-			Use:     "init",
-			Aliases: []string{"ec"},
-			Run:     func(cmd *cobra.Command, args []string) { initCommand() },
+			Use: "init",
+			Run: func(cmd *cobra.Command, args []string) { initCommand() },
 		},
 	)
 }
