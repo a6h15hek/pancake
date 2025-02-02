@@ -39,6 +39,7 @@ func init() {
 
 	var commandList = []*cobra.Command{
 		{Use: "list", Aliases: []string{"l"}, Run: func(cmd *cobra.Command, args []string) { listProjects() }},
+		{Use: "pwd", Aliases: []string{"p"}, Run: func(cmd *cobra.Command, args []string) { pwdProject(args) }},
 		{Use: "sync", Aliases: []string{"s"}, Run: func(cmd *cobra.Command, args []string) { syncProjects(args) }},
 		{Use: "open", Aliases: []string{"o"}, Run: func(cmd *cobra.Command, args []string) { openProject(args) }},
 		{Use: "build", Aliases: []string{"b"}, Run: func(cmd *cobra.Command, args []string) { buildProject(args) }},
@@ -101,8 +102,7 @@ func syncSingleProject(projectName string) {
 		utils.PullChanges(projectPath)
 	}
 	fmt.Printf("✅ Synchronized project %s successfully.\n", projectName)
-	fmt.Printf("\nTip: Run 'pancake open <project_name>' to open the specified project in your preferred IDE.\n")
-
+	fmt.Printf("\nTip: Run 'pancake open %s' to open the specified project in your preferred IDE.\n", projectName)
 }
 
 func syncProjects(args []string) {
@@ -125,9 +125,21 @@ func openProject(args []string) {
 		fmt.Printf("%s\n", utils.ProjectErrorSync)
 	} else {
 		fmt.Printf("✅ Opened project at %s\n", path)
-		fmt.Printf("\nTip: \n- Run 'pancake build <project_name>' to build your project.\n")
-		fmt.Printf("- Run 'pancake start <project_name>' to start the project locally.")
+		fmt.Printf("\nTip: \n- Run 'pancake build %s' to build your project.\n", args[0])
+		fmt.Printf("- Run 'pancake start %s' to start the project locally.", args[0])
 	}
+}
+
+// pwdProject prints the path of the specified project.
+func pwdProject(args []string) {
+	loadConfig()
+	path := config.Home
+	if len(args) > 0 {
+		path = filepath.Join(config.Home, args[0])
+	}
+
+	fmt.Printf("📁 Project path: %s\n", path)
+	fmt.Printf("\nTip: Use 'cd %s' to navigate to the project directory.\n", path)
 }
 
 // buildSingleProject builds a single project by name.
@@ -158,7 +170,7 @@ func buildSingleProject(projectName string) {
 		fmt.Printf("❌ Error building project %v: %v\n", projectName, err)
 	} else {
 		fmt.Printf("✅ Built project %s successfully.\n", projectName)
-		fmt.Printf("\nTip: Run 'pancake start <project_name>' to start the project locally.\n")
+		fmt.Printf("\nTip: Run 'pancake start %s' to start the project locally.\n", projectName)
 	}
 }
 

@@ -8,6 +8,7 @@ Streamlines your project management workflow, simplifies syncing multiple projec
 ```sh
 $ pancake list                  # View the list of all projects you are working on
 $ pancake sync                  # Sync multiple projects from the remote repository 
+$ pancake open <project_name>   # Open a specific project in IDE mentioned in config file
 $ pancake build <project_name>  # Build a project
 $ pancake run <project_name>    # Start a project on the local machine
 $ pancake monitor               # Show details about the port, process PID, and uptime

@@ -77,9 +77,9 @@ Further Assistance:
   Copy the package name and use with 'pancake tools install <package-name>'`
 
 	ProjectDescription = `Usage:
-  pancake list                                 or  pancake [project|p] l
-  pancake [sync|open|build|run] <project_name> or  pancake [project|p] [s|o|b|r] <project_name>
-  pancake monitor                              or  pancake [project|p] m
+  pancake list                                     or  pancake [project|p] l
+  pancake [sync|open|build|run|pwd] <project_name> or  pancake [project|p] [s|o|b|r|p] <project_name>
+  pancake monitor                                  or  pancake [project|p] m
 
 Troubleshooting:
   pancake edit config             or pancake p ec

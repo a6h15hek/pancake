@@ -20,6 +20,7 @@ This document provides information on the available commands for this project.
 | `pancake list`                 | `l`     | List all projects from config file                      |
 | `pancake sync <project_name>`  | `s`     | Synchronize projects from remote repository             |
 | `pancake open <project_name>`  | `o`     | Open a specific project in IDE mentioned in config file |
+| `pancake pwd <project_name>`   | `p`     | Get the directory path of the specified project         |
 | `pancake build <project_name>` | `b`     | Build a specific project                                |
 | `pancake run <project_name>`   | `r`     | Run a specific project                                  |
 | `pancake monitor`              | `m`     | Monitor the project's status                            |
