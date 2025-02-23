@@ -4,6 +4,7 @@
 ![GitHub](https://img.shields.io/github/license/a6h15hek/pancake)
 
 Streamlines your project management workflow, simplifies syncing multiple projects from remote repositories, helps build and run projects on a local machine, and allows for the installation, uninstallation, and updating of development software and tools. No need to remember longer commands. Share your entire development setup with your work buddies or back up your entire development setup by sharing `$HOME/pancake.yml`.
+![Screenshot 2025-02-23 at 9 59 52 PM](https://github.com/user-attachments/assets/0d0fa2df-f997-4ba8-b65a-b2fb4337bd65)
 
 ```sh
 $ pancake list                  # View the list of all projects you are working on
