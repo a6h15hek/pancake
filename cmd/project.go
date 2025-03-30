@@ -20,6 +20,7 @@ import (
 	"path/filepath"
 
 	"github.com/a6h15hek/pancake/utils"
+	"github.com/atotto/clipboard"
 	"github.com/spf13/cobra"
 )
 
@@ -130,7 +131,6 @@ func openProject(args []string) {
 	}
 }
 
-// pwdProject prints the path of the specified project.
 func pwdProject(args []string) {
 	loadConfig()
 	path := config.Home
@@ -138,8 +138,18 @@ func pwdProject(args []string) {
 		path = filepath.Join(config.Home, args[0])
 	}
 
+	cdCommand := fmt.Sprintf("cd %s", path)
+
+	err := clipboard.WriteAll(cdCommand)
+	if err != nil {
+		fmt.Printf("❌ Failed to copy to clipboard: %v\n", err)
+		return
+	}
+	clipboard.WriteAll(cdCommand)
+
 	fmt.Printf("📁 Project path: %s\n", path)
-	fmt.Printf("\nTip: Use 'cd %s' to navigate to the project directory.\n", path)
+	fmt.Printf("\nTip: The command 'cd %s' has been copied to your clipboard.\n", path)
+	fmt.Println("Press Ctrl+V to paste and use the command.")
 }
 
 // buildSingleProject builds a single project by name.
