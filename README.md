@@ -12,6 +12,7 @@ $ pancake sync                  # Sync multiple projects from the remote reposit
 $ pancake open <project_name>   # Open a specific project in IDE mentioned in config file
 $ pancake build <project_name>  # Build a project
 $ pancake run <project_name>    # Start a project on the local machine
+$ pancake pwd <project_name>    # Shows and copies the project path to clipboard  
 $ pancake monitor               # Show details about the port, process PID, and uptime
 
 $ pancake tool install tree     # Install a tool via pancake 

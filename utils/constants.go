@@ -27,7 +27,7 @@ package utils
 
 const (
 	AppName         = "Pancake"
-	Version         = "v1.1.0"
+	Version         = "v1.1.1"
 	Description     = "A tool to streamline project management workflow."
 	LongDescription = `Example Usage:
   pancake list 
