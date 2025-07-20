@@ -75,10 +75,10 @@ Step 2: Add: `alias pc='pancake'` \
 Step 3: Save, reload: `source ~/.bashrc` \
 
 
-Another feature in development is Pancake GPT, which allows users to write commands in natural language and convert them into actual commands. It utilizes GPT models to understand the user's natural language input, interpret it, create a corresponding command, and execute it.
+Another feature in development is Pancake AI, which allows users to write commands in natural language and convert them into actual commands. It utilizes AI models to understand the user's natural language input, interpret it, create a corresponding command, and execute it.
 
 ```bash
-$ pancake gpt <user_description_of_command>
+$ pancake ai <user_description_of_command>
 ```
 
 # Developer Documentation

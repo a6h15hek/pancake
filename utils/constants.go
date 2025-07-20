@@ -57,6 +57,13 @@ home: $HOME/pancake # For MacOS & Linux
 #home: '%userprofile%/pancake' # For Windows
 
 code_editor: code . # Preferred code editor (code -> VS Code, idea -> IntelliJ IDE)
+
+gemini:
+  api_key: ""
+  temperature: 0.7
+  url: "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+  context: "You are a helpful assistant that translates natural language into executable shell commands. Only provide the command, with no extra text or explanation."
+
 tools:
   - tree
 projects:

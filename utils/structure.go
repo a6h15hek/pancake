@@ -9,11 +9,19 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+type GeminiConfig struct {
+	APIKey      string  `yaml:"api_key"`
+	Temperature float32 `yaml:"temperature"`
+	URL         string  `yaml:"url"`
+	Context     string  `yaml:"context"`
+}
+
 type Config struct {
 	Home       string             `yaml:"home"`
 	CodeEditor string             `yaml:"code_editor"`
 	Tools      []string           `yaml:"tools"`
 	Projects   map[string]Project `yaml:"projects"`
+	Gemini     GeminiConfig       `yaml:"gemini"`
 }
 
 type Project struct {
