@@ -16,12 +16,22 @@ type GeminiConfig struct {
 	Context     string  `yaml:"context"`
 }
 
+type ChatGPTConfig struct {
+	APIKey      string  `yaml:"api_key"`
+	Temperature float32 `yaml:"temperature"`
+	URL         string  `yaml:"url"`
+	Model       string  `yaml:"model"`
+	Context     string  `yaml:"context"`
+}
+
 type Config struct {
 	Home       string             `yaml:"home"`
 	CodeEditor string             `yaml:"code_editor"`
+	DefaultAI  string             `yaml:"default_ai"`
 	Tools      []string           `yaml:"tools"`
 	Projects   map[string]Project `yaml:"projects"`
 	Gemini     GeminiConfig       `yaml:"gemini"`
+	ChatGPT    ChatGPTConfig      `yaml:"chatgpt"`
 }
 
 type Project struct {

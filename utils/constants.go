@@ -58,6 +58,14 @@ home: $HOME/pancake # For MacOS & Linux
 
 code_editor: code . # Preferred code editor (code -> VS Code, idea -> IntelliJ IDE)
 
+default_ai: gemini
+
+chatgpt:
+  api_key: ""
+  temperature: 0.7
+  url: "https://api.openai.com/v1/chat/completions"
+  model: "gpt-3.5-turbo"
+
 gemini:
   api_key: ""
   temperature: 0.7

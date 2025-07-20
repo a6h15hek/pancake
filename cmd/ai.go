@@ -50,6 +50,21 @@ interpret it, create a corresponding command, and execute it.`,
 	},
 }
 
+type AIClient interface {
+	GenerateContent(prompt string) (string, error)
+}
+
+func newAIClient(config *utils.Config) (AIClient, error) {
+	switch config.DefaultAI {
+	case "gemini":
+		return utils.NewGeminiClient(config.Gemini)
+	case "chatgpt":
+		return utils.NewChatGPTClient(config.ChatGPT)
+	default:
+		return nil, fmt.Errorf("unsupported AI provider in config: '%s'. Supported providers are 'gemini' and 'chatgpt'", config.DefaultAI)
+	}
+}
+
 // aiCommand starts an interactive AI session.
 func aiCommand(args []string) {
 	// Ensure keyboard is closed on exit
@@ -59,7 +74,7 @@ func aiCommand(args []string) {
 
 	loadConfig()
 
-	client, err := utils.NewGeminiClient(config.Gemini)
+	client, err := newAIClient(&config)
 	if err != nil {
 		log.Fatalf("❌ Failed to create AI client: %v", err)
 	}
@@ -133,7 +148,7 @@ func aiCommand(args []string) {
 }
 
 // getAIResponse sends a prompt to the AI and shows a loading animation.
-func getAIResponse(client *utils.Client, prompt string) (string, error) {
+func getAIResponse(client AIClient, prompt string) (string, error) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	done := make(chan bool)
@@ -187,7 +202,7 @@ func handleUserAction(code, lang string) string {
 
 	fmt.Println(strings.Repeat("-", 70))
 	if lang == "bash" || lang == "python" {
-		fmt.Print("[Ctrl+R] Run | [Enter] Copy | [Ctrl+C] Quit | Type a follow-up > ")
+		fmt.Print("[Ctrl+R] Run Code | [Enter] Copy | [Ctrl+C] Quit | Type a follow-up > ")
 	} else {
 		fmt.Print("[Enter] Copy | [Ctrl+C] Quit | Type a follow-up > ")
 	}
@@ -207,7 +222,6 @@ func handleUserAction(code, lang string) string {
 
 		switch {
 		case key == keyboard.KeyCtrlC:
-			fmt.Println("\nQuitting.")
 			return "quit"
 
 		// Handle backspace: only when in follow-up mode.

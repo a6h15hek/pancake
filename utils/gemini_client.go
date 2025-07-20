@@ -73,14 +73,14 @@ func (e *APIError) Error() string {
 	return fmt.Sprintf("gemini api error: %s (code: %d, status: %s)", e.Message, e.Code, e.Status)
 }
 
-// Client holds the configuration for making direct API calls to Gemini.
-type Client struct {
+// GeminiClient holds the configuration for making direct API calls to Gemini.
+type GeminiClient struct {
 	config     GeminiConfig
 	httpClient *http.Client
 }
 
-// NewAIClient creates a new Gemini AI client from the provided configuration.
-func NewGeminiClient(config GeminiConfig) (*Client, error) {
+// NewGeminiClient creates a new Gemini AI client from the provided configuration.
+func NewGeminiClient(config GeminiConfig) (*GeminiClient, error) {
 	if config.APIKey == "" {
 		return nil, fmt.Errorf("❌ Gemini API key is not set.\n" +
 			"Please run 'pancake edit config' to open the configuration file and add your API key.\n\n" +
@@ -99,14 +99,14 @@ func NewGeminiClient(config GeminiConfig) (*Client, error) {
 			"  url: \"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent\"")
 	}
 
-	return &Client{
+	return &GeminiClient{
 		config:     config,
 		httpClient: &http.Client{},
 	}, nil
 }
 
 // GenerateContent sends a prompt to the Gemini model via REST API and returns the response.
-func (c *Client) GenerateContent(prompt string) (string, error) {
+func (c *GeminiClient) GenerateContent(prompt string) (string, error) {
 	payload := GeminiRequestPayload{
 		Contents:          []Content{{Parts: []Part{{Text: prompt}}}},
 		SystemInstruction: &SystemInstruction{Parts: []Part{{Text: c.config.Context}}},
