@@ -57,6 +57,22 @@ home: $HOME/pancake # For MacOS & Linux
 #home: '%userprofile%/pancake' # For Windows
 
 code_editor: code . # Preferred code editor (code -> VS Code, idea -> IntelliJ IDE)
+
+default_ai: gemini
+
+chatgpt:
+  api_key: ""
+  temperature: 0.7
+  url: "https://api.openai.com/v1/chat/completions"
+  model: "gpt-3.5-turbo"
+  context: "PRINT OUTPUT IN MARKDOWN. You are a helpful assistant that translates natural language into executable shell commands..."
+
+gemini:
+  api_key: ""
+  temperature: 0.7
+  url: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+  context: "You are a helpful assistant that translates natural language into executable shell commands. Only provide the command, with no extra text or explanation."
+
 tools:
   - tree
 projects:
