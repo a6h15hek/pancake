@@ -64,6 +64,12 @@ func aiCommand(args []string) {
 		log.Fatalf("❌ Failed to create AI client: %v", err)
 	}
 
+	// conversationHistory holds the entire chat session.
+	var conversationHistory []string
+	// Add a system prompt to guide the AI's behavior.
+	systemPrompt := `You are a helpful command-line assistant. Generate only the command and nothing else. If the request is not for a command, respond with helpful text.`
+	conversationHistory = append(conversationHistory, "system: "+systemPrompt)
+
 	userInput := strings.Join(args, " ")
 	if strings.TrimSpace(userInput) == "" {
 		fmt.Print("> ")
@@ -78,7 +84,6 @@ func aiCommand(args []string) {
 		}
 	}
 
-	// Create a glamour renderer
 	renderer, err := glamour.NewTermRenderer(
 		glamour.WithAutoStyle(),
 		glamour.WithWordWrap(100),
@@ -93,18 +98,26 @@ func aiCommand(args []string) {
 			break
 		}
 
-		response, err := getAIResponse(client, userInput)
+		// Add the latest user input to the history.
+		conversationHistory = append(conversationHistory, "user: "+userInput)
+		// Join the entire history to provide full context to the AI.
+		fullPrompt := strings.Join(conversationHistory, "\n\n")
+
+		response, err := getAIResponse(client, fullPrompt)
 		if err != nil {
 			log.Printf("❌ Error getting AI response: %v", err)
+			// Remove the failed user prompt from history before trying again.
+			conversationHistory = conversationHistory[:len(conversationHistory)-1]
 			userInput = getUserFollowUp()
 			continue
 		}
 
-		// Render the markdown response
+		// Add the AI's response to the history for the next turn.
+		conversationHistory = append(conversationHistory, "model: "+response)
+
 		out, err := renderer.Render(response)
 		if err != nil {
 			log.Printf("❌ Error rendering markdown: %v", err)
-			// Print the raw response as a fallback
 			fmt.Println(response)
 		} else {
 			fmt.Print(out)
@@ -112,7 +125,6 @@ func aiCommand(args []string) {
 
 		lang, code := extractCodeBlock(response)
 
-		// handleUserAction will return the next prompt or "quit" to exit.
 		userInput = handleUserAction(code, lang)
 		if userInput == "quit" {
 			break
@@ -135,13 +147,11 @@ func getAIResponse(client *utils.Client, prompt string) (string, error) {
 				fmt.Print("\r" + strings.Repeat(" ", 80) + "\r") // Clear the line
 				return
 			default:
-				// Using \r to move the cursor to the beginning of the line and overwrite it.
-				// This forces a flush on most terminals, making the animation visible.
 				if len(dots) >= 15 {
-					dots = "" // Reset dots
+					dots = ""
 				}
 				dots += "."
-				fmt.Printf("\r%-10s", dots)
+				fmt.Printf("\rThinking%-15s", dots)
 				time.Sleep(1 * time.Second)
 			}
 		}
@@ -155,77 +165,85 @@ func getAIResponse(client *utils.Client, prompt string) (string, error) {
 
 // extractCodeBlock finds and extracts the language and content of the first code block.
 func extractCodeBlock(response string) (lang, code string) {
-	// Regex to find ```lang\ncode\n```. It's more flexible and captures any language.
 	re := regexp.MustCompile("(?s)```(.*?)\n(.*?)\n```")
 	matches := re.FindStringSubmatch(response)
 
 	if len(matches) >= 3 {
 		language := strings.TrimSpace(matches[1])
 		if language == "" || language == "sh" {
-			language = "bash" // Default to bash for shell scripts
+			language = "bash"
 		}
 		return language, strings.TrimSpace(matches[2])
 	}
-
-	// If no code block is found, return the whole response as plain text.
 	return "text", strings.TrimSpace(response)
 }
 
 // handleUserAction presents options to the user and waits for their choice.
 func handleUserAction(code, lang string) string {
 	if err := keyboard.Open(); err != nil {
-		// Use log.Fatalf to print the error and exit with a status code of 1.
 		log.Fatalf("❌ Could not open keyboard: %v", err)
 	}
 
 	fmt.Println(strings.Repeat("-", 70))
-	// Show different prompts based on whether the content is executable code or text
 	if lang == "bash" || lang == "python" {
-		fmt.Print("[Ctrl+R] Run Command | [Enter] Copy | [Ctrl+C] Quit | Type a follow-up > ")
+		fmt.Print("[Ctrl+R] Run | [Enter] Copy | [Ctrl+C] Quit | Type a follow-up > ")
 	} else {
 		fmt.Print("[Enter] Copy | [Ctrl+C] Quit | Type a follow-up > ")
 	}
 
+	const clearTwoLines = "\r\x1b[K\x1b[1A\x1b[K"
+
 	for {
 		char, key, err := keyboard.GetKey()
 		if err != nil {
+			_ = keyboard.Close()
 			log.Printf("❌ Error reading keypress: %v", err)
-			return "quit" // Exit on error
-		}
-
-		// On Ctrl+C, exit gracefully.
-		if key == keyboard.KeyCtrlC {
 			return "quit"
 		}
 
-		// Handle actions for executable code
+		// Always close the keyboard before returning.
+		if key == keyboard.KeyCtrlC {
+			_ = keyboard.Close()
+			fmt.Println("\nQuitting.")
+			return "quit"
+		}
+
 		if lang == "bash" || lang == "python" {
 			if key == keyboard.KeyCtrlR {
-				fmt.Printf("\r%s\r", strings.Repeat(" ", 80))
+				_ = keyboard.Close()
+				fmt.Print(clearTwoLines)
 				executeCommand(code, lang)
-				return "quit" // Exit after executing the command.
+				return "quit"
 			}
 		}
 
-		// Handle copy action for both code and plain text.
 		if key == keyboard.KeyEnter {
-			fmt.Printf("\r%s\r", strings.Repeat(" ", 80))
+			_ = keyboard.Close()
+			fmt.Print(clearTwoLines)
 			if err := clipboard.WriteAll(code); err != nil {
 				log.Printf("❌ Failed to copy to clipboard: %v", err)
+			} else {
+				fmt.Println("✅ Copied to clipboard!")
 			}
-			fmt.Println("Copied to clipboard!")
-			return "quit" // Exit after copying.
+			return "quit"
 		}
 
-		// If a printable character is typed, start a follow-up prompt
+		// This is the corrected logic for follow-up input.
 		if char != 0 {
-			// Clear the prompt line and start the new user input
-			fmt.Printf("\r%s\r", strings.Repeat(" ", 80))
-			fmt.Printf("> %c", char)
+			// **CRITICAL**: Close keyboard to return terminal to normal mode
+			// *before* reading a full line of text.
+			if err := keyboard.Close(); err != nil {
+				log.Printf("❌ Failed to close keyboard: %v", err)
+			}
+
+			fmt.Print(clearTwoLines)
+			fmt.Printf("> %c", char) // Print the first character that was captured
+
+			// Now that the terminal is in normal mode, read the rest of the line.
 			reader := bufio.NewReader(os.Stdin)
 			followUp, _ := reader.ReadString('\n')
-			// Close the keyboard here so the main loop can potentially reopen it
-			_ = keyboard.Close()
+
+			// Combine the first character with the rest of the input.
 			return string(char) + strings.TrimSpace(followUp)
 		}
 	}
@@ -244,7 +262,6 @@ func executeCommand(code, lang string) {
 		return
 	}
 
-	// Stream the command's output to the application's stdout and stderr
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
