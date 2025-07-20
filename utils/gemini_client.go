@@ -80,7 +80,7 @@ type Client struct {
 }
 
 // NewAIClient creates a new Gemini AI client from the provided configuration.
-func NewAIClient(config GeminiConfig) (*Client, error) {
+func NewGeminiClient(config GeminiConfig) (*Client, error) {
 	if config.APIKey == "" {
 		return nil, fmt.Errorf("❌ Gemini API key is not set.\n" +
 			"Please run 'pancake edit config' to open the configuration file and add your API key.\n\n" +

@@ -61,7 +61,7 @@ code_editor: code . # Preferred code editor (code -> VS Code, idea -> IntelliJ I
 gemini:
   api_key: ""
   temperature: 0.7
-  url: "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+  url: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
   context: "You are a helpful assistant that translates natural language into executable shell commands. Only provide the command, with no extra text or explanation."
 
 tools:
