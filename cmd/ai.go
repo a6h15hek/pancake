@@ -183,6 +183,7 @@ func handleUserAction(code, lang string) string {
 	if err := keyboard.Open(); err != nil {
 		log.Fatalf("❌ Could not open keyboard: %v", err)
 	}
+	defer keyboard.Close() // Ensure keyboard is always closed on exit
 
 	fmt.Println(strings.Repeat("-", 70))
 	if lang == "bash" || lang == "python" {
@@ -191,34 +192,44 @@ func handleUserAction(code, lang string) string {
 		fmt.Print("[Enter] Copy | [Ctrl+C] Quit | Type a follow-up > ")
 	}
 
+	const clearCurrentLine = "\r\x1b[K"
 	const clearTwoLines = "\r\x1b[K\x1b[1A\x1b[K"
+
+	var followUpInput []rune
+	isFollowUpMode := false
 
 	for {
 		char, key, err := keyboard.GetKey()
 		if err != nil {
-			_ = keyboard.Close()
 			log.Printf("❌ Error reading keypress: %v", err)
 			return "quit"
 		}
 
-		// Always close the keyboard before returning.
-		if key == keyboard.KeyCtrlC {
-			_ = keyboard.Close()
+		switch {
+		case key == keyboard.KeyCtrlC:
 			fmt.Println("\nQuitting.")
 			return "quit"
-		}
 
-		if lang == "bash" || lang == "python" {
-			if key == keyboard.KeyCtrlR {
-				_ = keyboard.Close()
-				fmt.Print(clearTwoLines)
-				executeCommand(code, lang)
-				return "quit"
+		// Handle backspace: only when in follow-up mode.
+		case (key == keyboard.KeyBackspace || key == keyboard.KeyBackspace2) && isFollowUpMode:
+			if len(followUpInput) > 0 {
+				followUpInput = followUpInput[:len(followUpInput)-1]
+				fmt.Printf("%s> %s", clearCurrentLine, string(followUpInput))
 			}
-		}
 
-		if key == keyboard.KeyEnter {
-			_ = keyboard.Close()
+		// ADDED: Handle spacebar explicitly when in follow-up mode.
+		case key == keyboard.KeySpace && isFollowUpMode:
+			followUpInput = append(followUpInput, ' ')
+			fmt.Printf(" ")
+
+		// Handle Enter key.
+		case key == keyboard.KeyEnter:
+			if isFollowUpMode {
+				// If typing a follow-up, Enter submits it.
+				fmt.Println()
+				return strings.TrimSpace(string(followUpInput))
+			}
+			// Otherwise, Enter copies the code.
 			fmt.Print(clearTwoLines)
 			if err := clipboard.WriteAll(code); err != nil {
 				log.Printf("❌ Failed to copy to clipboard: %v", err)
@@ -226,25 +237,22 @@ func handleUserAction(code, lang string) string {
 				fmt.Println("✅ Copied to clipboard!")
 			}
 			return "quit"
-		}
 
-		// This is the corrected logic for follow-up input.
-		if char != 0 {
-			// **CRITICAL**: Close keyboard to return terminal to normal mode
-			// *before* reading a full line of text.
-			if err := keyboard.Close(); err != nil {
-				log.Printf("❌ Failed to close keyboard: %v", err)
-			}
-
+		// Handle Run command: only if not in follow-up mode.
+		case key == keyboard.KeyCtrlR && !isFollowUpMode && (lang == "bash" || lang == "python"):
 			fmt.Print(clearTwoLines)
-			fmt.Printf("> %c", char) // Print the first character that was captured
+			executeCommand(code, lang)
+			return "quit"
 
-			// Now that the terminal is in normal mode, read the rest of the line.
-			reader := bufio.NewReader(os.Stdin)
-			followUp, _ := reader.ReadString('\n')
-
-			// Combine the first character with the rest of the input.
-			return string(char) + strings.TrimSpace(followUp)
+		// Handle any other printable character.
+		case char != 0:
+			if !isFollowUpMode {
+				isFollowUpMode = true
+				// Clear the menu prompt and start the input prompt.
+				fmt.Printf("%s> ", clearCurrentLine)
+			}
+			followUpInput = append(followUpInput, char)
+			fmt.Printf("%c", char)
 		}
 	}
 }
