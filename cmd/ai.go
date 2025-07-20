@@ -23,6 +23,8 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/a6h15hek/pancake/utils"
 	"github.com/atotto/clipboard"
@@ -91,7 +93,7 @@ func aiCommand(args []string) {
 			break
 		}
 
-		response, err := client.GenerateContent(userInput)
+		response, err := getAIResponse(client, userInput)
 		if err != nil {
 			log.Printf("❌ Error getting AI response: %v", err)
 			userInput = getUserFollowUp()
@@ -116,6 +118,39 @@ func aiCommand(args []string) {
 			break
 		}
 	}
+}
+
+// getAIResponse sends a prompt to the AI and shows a loading animation.
+func getAIResponse(client *utils.Client, prompt string) (string, error) {
+	var wg sync.WaitGroup
+	wg.Add(1)
+	done := make(chan bool)
+
+	go func() {
+		defer wg.Done()
+		dots := ""
+		for {
+			select {
+			case <-done:
+				fmt.Print("\r" + strings.Repeat(" ", 80) + "\r") // Clear the line
+				return
+			default:
+				// Using \r to move the cursor to the beginning of the line and overwrite it.
+				// This forces a flush on most terminals, making the animation visible.
+				if len(dots) >= 15 {
+					dots = "" // Reset dots
+				}
+				dots += "."
+				fmt.Printf("\r%-10s", dots)
+				time.Sleep(1 * time.Second)
+			}
+		}
+	}()
+
+	response, err := client.GenerateContent(prompt)
+	close(done)
+	wg.Wait()
+	return response, err
 }
 
 // extractCodeBlock finds and extracts the language and content of the first code block.
@@ -166,7 +201,7 @@ func handleUserAction(code, lang string) string {
 		// Handle actions for executable code
 		if lang == "bash" || lang == "python" {
 			if key == keyboard.KeyCtrlR {
-				fmt.Println()
+				fmt.Printf("\r%s\r", strings.Repeat(" ", 80))
 				executeCommand(code, lang)
 				return "quit" // Exit after executing the command.
 			}
@@ -174,8 +209,11 @@ func handleUserAction(code, lang string) string {
 
 		// Handle copy action for both code and plain text.
 		if key == keyboard.KeyEnter {
-			clipboard.WriteAll(code)
-			fmt.Println("\nCopied to clipboard!")
+			fmt.Printf("\r%s\r", strings.Repeat(" ", 80))
+			if err := clipboard.WriteAll(code); err != nil {
+				log.Printf("❌ Failed to copy to clipboard: %v", err)
+			}
+			fmt.Println("Copied to clipboard!")
 			return "quit" // Exit after copying.
 		}
 
