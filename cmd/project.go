@@ -80,18 +80,26 @@ func listProjects() {
 	fmt.Printf("\nTip: Run 'pancake sync <project_name>' to sync your project with the remote repository.\n")
 }
 
-// syncSingleProject synchronizes a single project by name.
-func syncSingleProject(projectName string) {
+// getProject retrieves a project from the configuration and handles not-found errors.
+func getProject(projectName string) (*utils.Project, bool) {
 	project, exists := config.Projects[projectName]
 	if !exists {
 		fmt.Printf("❌ Project %s not found in configuration.\n", projectName)
 		fmt.Printf("%s\n", utils.ProjectErrorAddConfig)
+		return nil, false
+	}
+	return &project, true
+}
+
+// syncSingleProject synchronizes a single project by name.
+func syncSingleProject(projectName string) {
+	project, ok := getProject(projectName)
+	if !ok {
 		return
 	}
 
 	projectPath := filepath.Join(config.Home, projectName)
 	gitDirPath := filepath.Join(projectPath, ".git")
-
 	projectExists := utils.CheckExists(projectPath)
 	gitExists := utils.CheckExists(gitDirPath)
 
@@ -116,7 +124,11 @@ func openProject(args []string) {
 	fmt.Println("🔍 Loading... Opening project")
 	path := config.Home
 	if len(args) > 0 {
-		path = filepath.Join(config.Home, args[0])
+		projectName := args[0]
+		if _, ok := getProject(projectName); !ok {
+			return
+		}
+		path = filepath.Join(config.Home, projectName)
 	}
 
 	err := utils.ExecuteCommand(config.CodeEditor, path)
@@ -126,8 +138,10 @@ func openProject(args []string) {
 		fmt.Printf("%s\n", utils.ProjectErrorSync)
 	} else {
 		fmt.Printf("✅ Opened project at %s\n", path)
-		fmt.Printf("\nTip: \n- Run 'pancake build %s' to build your project.\n", args[0])
-		fmt.Printf("- Run 'pancake start %s' to start the project locally.", args[0])
+		if len(args) > 0 {
+			fmt.Printf("\nTip: \n- Run 'pancake build %s' to build your project.\n", args[0])
+			fmt.Printf("- Run 'pancake start %s' to start the project locally.", args[0])
+		}
 	}
 }
 
@@ -135,7 +149,11 @@ func pwdProject(args []string) {
 	loadConfig()
 	path := config.Home
 	if len(args) > 0 {
-		path = filepath.Join(config.Home, args[0])
+		projectName := args[0]
+		if _, ok := getProject(projectName); !ok {
+			return
+		}
+		path = filepath.Join(config.Home, projectName)
 	}
 
 	cdCommand := fmt.Sprintf("cd %s", path)
@@ -145,7 +163,6 @@ func pwdProject(args []string) {
 		fmt.Printf("❌ Failed to copy to clipboard: %v\n", err)
 		return
 	}
-	clipboard.WriteAll(cdCommand)
 
 	fmt.Printf("📁 Project path: %s\n", path)
 	fmt.Printf("\nTip: The command 'cd %s' has been copied to your clipboard.\n", path)
@@ -155,10 +172,8 @@ func pwdProject(args []string) {
 // buildSingleProject builds a single project by name.
 func buildSingleProject(projectName string) {
 	fmt.Printf("🔨 Building... Running build command for project %s\n", projectName)
-	project, exists := config.Projects[projectName]
-	if !exists {
-		fmt.Printf("❌ Project %s not found in configuration.\n", projectName)
-		fmt.Printf("%s\n", utils.ProjectErrorAddConfig)
+	project, ok := getProject(projectName)
+	if !ok {
 		return
 	}
 
@@ -191,10 +206,8 @@ func buildProject(args []string) {
 // runSingleProject runs a single project by name.
 func runSingleProject(projectName string) {
 	fmt.Printf("🚀 Running project %s\n", projectName)
-	project, exists := config.Projects[projectName]
-	if !exists {
-		fmt.Printf("❌ Project %s not found in configuration.\n", projectName)
-		fmt.Printf("%s\n", utils.ProjectErrorAddConfig)
+	project, ok := getProject(projectName)
+	if !ok {
 		return
 	}
 
