@@ -65,6 +65,7 @@ chatgpt:
   temperature: 0.7
   url: "https://api.openai.com/v1/chat/completions"
   model: "gpt-3.5-turbo"
+  context: "PRINT OUTPUT IN MARKDOWN. You are a helpful assistant that translates natural language into executable shell commands..."
 
 gemini:
   api_key: ""

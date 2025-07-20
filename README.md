@@ -13,6 +13,7 @@ $ pancake build <project_name>  # Build a project
 $ pancake run <project_name>    # Start a project on the local machine
 $ pancake pwd <project_name>    # Shows and copies the project path to clipboard  
 $ pancake monitor               # Show details about the port, process PID, and uptime
+$ pancake ai "find all files larger than 10MB in my home directory" # generate command out of natural language
 
 $ pancake tool install tree     # Install a tool via pancake 
 $ pancake tool upgrade tree     # Update tools via pancake
@@ -75,13 +76,39 @@ Step 2: Add: `alias pc='pancake'` \
 Step 3: Save, reload: `source ~/.bashrc` \
 
 
-Another feature in development is Pancake AI, which allows users to write commands in natural language and convert them into actual commands. It utilizes AI models to understand the user's natural language input, interpret it, create a corresponding command, and execute it.
+## Pancake AI
+
+Pancake AI allows you to write commands in natural language and have them translated into executable shell commands. It utilizes AI models (supporting both Gemini and ChatGPT) to understand your input, generate the corresponding command, and offers you the choice to execute it, copy it, or ask a follow-up question.
 
 ```bash
-$ pancake ai <user_description_of_command>
+$ pancake ai "find all files larger than 10MB in my home directory"
 ```
 
 # Developer Documentation
+- This will start an interactive session where the AI will provide the command. You will then have the following options: 
+- Run Code: Press Ctrl+R to execute the generated command directly (for bash and python). 
+- Copy Command: Press Enter to copy the command to your clipboard. +- Quit: Press Ctrl+C to exit the session. 
+- Follow-up: Simply start typing a follow-up question and press Enter. 
+
+### AI Configuration 
+To use Pancake AI, you need to configure your preferred AI provider in your $HOME/pancake.yml file. Add your API key for either Gemini or ChatGPT.
+
+```yml 
+default_ai: gemini # or chatgpt:
+
+api_key: "YOUR_OPENAI_API_KEY"
+temperature: 0.7
+url: "https://api.openai.com/v1/chat/completions"
+model: "gpt-3.5-turbo"
+context: "PRINT OUTPUT IN MARKDOWN. You are a helpful assistant that translates natural language into executable shell commands..."
++gemini:
+
+api_key: "YOUR_GEMINI_API_KEY"
+temperature: 0.7
+url: "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+context: "You are a helpful assistant that translates natural language into executable shell commands. Only provide the command, with no extra text or explanation."
+
+```
 
 ### Project Structure
 
@@ -140,5 +167,3 @@ GOOS=windows GOARCH=amd64 go build -o pancake-windows-amd64.exe
 ```
 
 Thank you for visiting the Pancake repository! Feel free to fork and 🌟 the repository!
-
-
