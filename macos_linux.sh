@@ -1,4 +1,4 @@
-#!/bin/bash
+]#!/bin/bash
 
 # Variables
 REPO="github.com/a6h15hek/pancake"
@@ -52,9 +52,11 @@ if command -v "$BINARY_NAME" &> /dev/null; then
     log "Pancake is already installed. Checking for updates..."
     CURRENT_VERSION=$($BINARY_NAME version 2>/dev/null | awk '{print $2}')
     if [[ -z "$CURRENT_VERSION" ]]; then
-        error_exit "Failed to get current version of Pancake."
+        # This might happen if the version command fails or is not as expected
+        log "Could not determine current version. Proceeding with potential update."
+    else
+        log "Current version: $CURRENT_VERSION"
     fi
-    log "Current version: $CURRENT_VERSION"
 else
     log "Pancake is not installed. Proceeding with installation..."
 fi
@@ -71,12 +73,24 @@ log "Download completed."
 
 # Install the binary
 log "Installing Pancake to ${INSTALL_DIR}..."
+
+# --- FIX ---
+# Create the installation directory if it does not exist
+sudo mkdir -p "${INSTALL_DIR}" || error_exit "Failed to create installation directory: ${INSTALL_DIR}"
+# --- END FIX ---
+
 sudo mv "${TEMP_DIR}/${BINARY_FILE}" "${INSTALL_DIR}/${BINARY_NAME}" || error_exit "Failed to move binary to ${INSTALL_DIR}."
 sudo chmod +x "${INSTALL_DIR}/${BINARY_NAME}" || error_exit "Failed to set executable permissions."
 
 # Verify installation
+# It's good practice to check if the command is now in the path
+if ! command -v "$BINARY_NAME" &> /dev/null; then
+    error_exit "Installation failed. '${BINARY_NAME}' command not found in PATH."
+fi
+
 NEW_VERSION=$($BINARY_NAME version 2>/dev/null | awk '{print $2}')
 if [[ -z "$NEW_VERSION" ]]; then
     error_exit "Failed to verify installation. Pancake may not be installed correctly."
 fi
 log "Pancake installed/updated successfully. Version: $NEW_VERSION"
+
