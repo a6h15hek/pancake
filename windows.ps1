@@ -1,86 +1,124 @@
-\# Variables
+# pancake-install.ps1
+
+param (
+    [string]$Action = "install"
+)
+
+# Configuration
 $REPO = "github.com/a6h15hek/pancake"
 $BINARY_NAME = "pancake"
 $INSTALL_DIR = "$env:ProgramFiles\Pancake"
-$TEMP_DIR = $env:TEMP
+$BINARY_FILE_NAME = "$BINARY_NAME-windows-amd64.exe"
+$DESTINATION_EXE = "$INSTALL_DIR\$BINARY_NAME.exe"
+$TEMP_FILE = "$env:TEMP\$BINARY_FILE_NAME"
 
-# Logging function
+# --- Helper Functions ---
+
 function Log {
-    param (
-        [string]$Message
-    )
-    Write-Output "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - $Message"
+    param ([string]$Message)
+    Write-Host "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - $Message" -ForegroundColor Cyan
 }
 
-# Error handling function
-function ErrorExit {
-    param (
-        [string]$Message
-    )
-    Log "ERROR: $Message"
-    exit 1
+function Log-Error {
+    param ([string]$Message)
+    Write-Host "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - ERROR: $Message" -ForegroundColor Red
 }
 
-# Uninstall function
-function Uninstall {
-    if (Get-Command $BINARY_NAME -ErrorAction SilentlyContinue) {
+function Assert-Admin {
+    $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+    if (-not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+        Log-Error "This script requires Administrator privileges to install to $INSTALL_DIR and update system PATH."
+        Log-Error "Please run PowerShell as Administrator and try again."
+        exit 1
+    }
+}
+
+function Ensure-Path {
+    param ([string]$PathToAdd)
+    $currentPath = [Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::Machine)
+    if ($currentPath -split ';' -notcontains $PathToAdd) {
+        Log "Adding '$PathToAdd' to System PATH..."
+        [Environment]::SetEnvironmentVariable("Path", $currentPath + ";$PathToAdd", [EnvironmentVariableTarget]::Machine)
+        Log "PATH updated. You may need to restart your terminal for changes to take effect."
+    } else {
+        Log "PATH is already configured correctly."
+    }
+}
+
+function Kill-Process {
+    $proc = Get-Process $BINARY_NAME -ErrorAction SilentlyContinue
+    if ($proc) {
+        Log "Stopping running instance of $BINARY_NAME..."
+        Stop-Process -InputObject $proc -Force
+        Start-Sleep -Seconds 1
+    }
+}
+
+# --- Main Logic ---
+
+Assert-Admin
+
+if ($Action -eq "uninstall") {
+    if (Test-Path $DESTINATION_EXE) {
         Log "Uninstalling Pancake..."
-        Remove-Item -Path "$INSTALL_DIR\$BINARY_NAME.exe" -Force -ErrorAction Stop
+        Kill-Process
+        Remove-Item -Path $DESTINATION_EXE -Force -ErrorAction Stop
+
+        # Optional: Clean up directory if empty
+        if ((Get-ChildItem $INSTALL_DIR).Count -eq 0) {
+            Remove-Item -Path $INSTALL_DIR -Force
+        }
+
         Log "Pancake uninstalled successfully."
+        Log "Note: The directory '$INSTALL_DIR' was removed from PATH, but the environment variable entry might remain until manual cleanup or reboot."
     } else {
         Log "Pancake is not installed."
     }
     exit 0
 }
 
-# Check if uninstall argument is passed
-if ($args[0] -eq "uninstall") {
-    Uninstall
-}
+# Install / Update Logic
+try {
+    # 1. Environment Checks
+    Kill-Process
 
-# Detect OS and architecture
-$OS = $PSVersionTable.OS -replace "Windows NT ", ""
-$ARCH = "amd64"
-
-# Determine the binary name based on OS
-if ($OS -match "Windows") {
-    $BINARY_FILE = "$BINARY_NAME-windows-$ARCH.exe"
-} else {
-    ErrorExit "Unsupported OS: $OS"
-}
-
-# Check if pancake is already installed
-if (Get-Command $BINARY_NAME -ErrorAction SilentlyContinue) {
-    Log "Pancake is already installed. Checking for updates..."
-    $CURRENT_VERSION = & $BINARY_NAME version | Select-String -Pattern "\d+\.\d+\.\d+" | ForEach-Object { $_.Matches.Value }
-    if (-not $CURRENT_VERSION) {
-        ErrorExit "Failed to get current version of Pancake."
+    if (Test-Path $DESTINATION_EXE) {
+        Log "Pancake is already installed. Updating..."
+    } else {
+        Log "Fresh installation of Pancake detected."
     }
-    Log "Current version: $CURRENT_VERSION"
-} else {
-    Log "Pancake is not installed. Proceeding with installation..."
-}
 
-# Download the latest version
-Log "Downloading the latest version of Pancake..."
-$DOWNLOAD_URL = "https://$REPO/releases/latest/download/$BINARY_FILE"
-Invoke-WebRequest -Uri $DOWNLOAD_URL -OutFile "$TEMP_DIR\$BINARY_FILE" -ErrorAction Stop
+    # 2. Download
+    Log "Downloading latest binary from $REPO..."
+    $DownloadUrl = "https://$REPO/releases/latest/download/$BINARY_FILE_NAME"
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    Invoke-WebRequest -Uri $DownloadUrl -OutFile $TEMP_FILE -ErrorAction Stop
 
-if (-not (Test-Path "$TEMP_DIR\$BINARY_FILE")) {
-    ErrorExit "Downloaded binary not found in $TEMP_DIR."
-}
-Log "Download completed."
+    if (-not (Test-Path $TEMP_FILE)) {
+        throw "Downloaded file not found at $TEMP_FILE"
+    }
 
-# Install the binary
-Log "Installing Pancake to $INSTALL_DIR..."
-if (-not (Test-Path $INSTALL_DIR)) {
-    New-Item -ItemType Directory -Path $INSTALL_DIR -Force -ErrorAction Stop | Out-Null
-}
-Move-Item -Path "$TEMP_DIR\$BINARY_FILE" -Destination "$INSTALL_DIR\$BINARY_NAME.exe" -Force -ErrorAction Stop
+    # 3. Installation
+    if (-not (Test-Path $INSTALL_DIR)) {
+        New-Item -ItemType Directory -Path $INSTALL_DIR -Force | Out-Null
+    }
 
-# Verify installation
-$NEW_VERSION = & "$INSTALL_DIR\$BINARY_NAME.exe" version | Select-String -Pattern "\d+\.\d+\.\d+" | ForEach-Object { $_.Matches.Value }
-if (-not $NEW_VERSION) {
-    ErrorExit "Failed to verify installation. Pancake may not be installed correctly."
+    Move-Item -Path $TEMP_FILE -Destination $DESTINATION_EXE -Force -ErrorAction Stop
+    Log "Binary installed to $DESTINATION_EXE"
+
+    # 4. Post-Install Configuration
+    Ensure-Path $INSTALL_DIR
+
+    # 5. Verification
+    if (Get-Command $DESTINATION_EXE -ErrorAction SilentlyContinue) {
+        $Version = & $DESTINATION_EXE version
+        Log "SUCCESS! Pancake installed: $Version"
+        Log "Type 'pancake' in a new terminal window to get started."
+    } else {
+        throw "Verification failed. The binary was moved but cannot be executed."
+    }
+
+} catch {
+    Log-Error $_.Exception.Message
+    exit 1
 }
-Log "Pancake installed/updated successfully. Version: $NEW_VERSION"
