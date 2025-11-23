@@ -1,96 +1,118 @@
-]#!/bin/bash
+#!/bin/bash
 
-# Variables
+# Configuration
 REPO="github.com/a6h15hek/pancake"
 BINARY_NAME="pancake"
 INSTALL_DIR="/usr/local/bin"
-TEMP_DIR="/tmp"
+TEMP_DIR=$(mktemp -d)
+CMD_INSTALL_PATH="$INSTALL_DIR/$BINARY_NAME"
 
-# Logging function
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# --- Helper Functions ---
+
 log() {
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"
+    echo -e "${BLUE}[$(date +'%H:%M:%S')]${NC} $1"
 }
 
-# Error handling function
+success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
+}
+
 error_exit() {
-    log "ERROR: $1"
+    echo -e "${RED}[ERROR]${NC} $1"
     exit 1
 }
 
-# Uninstall function
+cleanup() {
+    rm -rf "$TEMP_DIR"
+}
+trap cleanup EXIT
+
+# --- Checks ---
+
+# Check dependencies
+command -v curl >/dev/null 2>&1 || error_exit "curl is required but not installed."
+
+# Detect OS and Arch
+OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+ARCH=$(uname -m)
+
+if [[ "$OS" == "linux" ]]; then
+    BINARY_FILE="${BINARY_NAME}-linux-amd64"
+    if [[ "$ARCH" != "x86_64" ]]; then
+        echo -e "${RED}Warning:${NC} You are running on $ARCH. The current release only supports amd64 (x86_64)."
+        echo "The installation may fail or the binary may not run."
+        read -p "Continue anyway? (y/n) " -n 1 -r
+        echo
+        [[ ! $REPLY =~ ^[Yy]$ ]] && exit 1
+    fi
+elif [[ "$OS" == "darwin" ]]; then
+    BINARY_FILE="${BINARY_NAME}-darwin-amd64"
+    # Mac M1/M2/M3 (arm64) can run amd64 binaries via Rosetta 2 silently.
+else
+    error_exit "Unsupported OS: $OS"
+fi
+
+# --- Main Logic ---
+
 uninstall() {
-    if command -v "$BINARY_NAME" &> /dev/null; then
+    if [ -f "$CMD_INSTALL_PATH" ]; then
         log "Uninstalling Pancake..."
-        sudo rm -f "${INSTALL_DIR}/${BINARY_NAME}" || error_exit "Failed to remove ${BINARY_NAME} from ${INSTALL_DIR}."
-        log "Pancake uninstalled successfully."
+        sudo rm -f "$CMD_INSTALL_PATH" || error_exit "Failed to remove binary."
+        success "Pancake uninstalled successfully."
     else
         log "Pancake is not installed."
     fi
     exit 0
 }
 
-# Check if uninstall argument is passed
+# Handle Arguments
 if [[ "$1" == "uninstall" ]]; then
     uninstall
 fi
 
-# Detect OS and architecture
-OS=$(uname -s | tr '[:upper:]' '[:lower:]')
-ARCH="amd64"
-
-# Determine the binary name based on OS
-if [[ "$OS" == "linux" ]]; then
-    BINARY_FILE="${BINARY_NAME}-linux-${ARCH}"
-elif [[ "$OS" == "darwin" ]]; then
-    BINARY_FILE="${BINARY_NAME}-darwin-${ARCH}"
+# Installation / Update
+if command -v "$BINARY_NAME" &> /dev/null; then
+    log "Existing installation found. Checking for updates..."
 else
-    error_exit "Unsupported OS: $OS"
+    log "Starting fresh installation..."
 fi
 
-# Check if pancake is already installed
-if command -v "$BINARY_NAME" &> /dev/null; then
-    log "Pancake is already installed. Checking for updates..."
-    CURRENT_VERSION=$($BINARY_NAME version 2>/dev/null | awk '{print $2}')
-    if [[ -z "$CURRENT_VERSION" ]]; then
-        # This might happen if the version command fails or is not as expected
-        log "Could not determine current version. Proceeding with potential update."
+# Download
+DOWNLOAD_URL="https://${REPO}/releases/latest/download/${BINARY_FILE}"
+log "Downloading from: $DOWNLOAD_URL"
+curl -sL --fail "$DOWNLOAD_URL" -o "${TEMP_DIR}/${BINARY_FILE}" || error_exit "Download failed. Check your internet connection or URL."
+
+# Install
+log "Installing binary to ${INSTALL_DIR}..."
+
+# Create directory if missing (requires sudo)
+if [ ! -d "$INSTALL_DIR" ]; then
+    log "Creating $INSTALL_DIR..."
+    sudo mkdir -p "$INSTALL_DIR" || error_exit "Failed to create installation directory."
+fi
+
+# Move and Chmod
+sudo mv "${TEMP_DIR}/${BINARY_FILE}" "$CMD_INSTALL_PATH" || error_exit "Failed to move binary. Do you have sudo privileges?"
+sudo chmod +x "$CMD_INSTALL_PATH" || error_exit "Failed to make binary executable."
+
+# Verification
+if ! command -v "$BINARY_NAME" &> /dev/null; then
+    # If command -v failed, it might be because /usr/local/bin isn't in PATH
+    if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
+        echo -e "${RED}Warning:${NC} '$INSTALL_DIR' is not in your PATH."
+        echo "Please add the following to your shell config (.bashrc, .zshrc, etc.):"
+        echo "  export PATH=\$PATH:$INSTALL_DIR"
     else
-        log "Current version: $CURRENT_VERSION"
+        error_exit "Installation verification failed. The binary exists but cannot be executed."
     fi
 else
-    log "Pancake is not installed. Proceeding with installation..."
+    NEW_VERSION=$($BINARY_NAME version 2>/dev/null | awk '{print $2}')
+    success "Installed Pancake ${NEW_VERSION} successfully!"
+    echo "Run 'pancake help' to get started."
 fi
-
-# Download the latest version
-log "Downloading the latest version of Pancake..."
-DOWNLOAD_URL="https://${REPO}/releases/latest/download/${BINARY_FILE}"
-curl -sL "$DOWNLOAD_URL" -o "${TEMP_DIR}/${BINARY_FILE}" || error_exit "Failed to download Pancake."
-
-if [[ ! -f "${TEMP_DIR}/${BINARY_FILE}" ]]; then
-    error_exit "Downloaded binary not found in ${TEMP_DIR}."
-fi
-log "Download completed."
-
-# Install the binary
-log "Installing Pancake to ${INSTALL_DIR}..."
-
-# --- FIX ---
-# Create the installation directory if it does not exist
-sudo mkdir -p "${INSTALL_DIR}" || error_exit "Failed to create installation directory: ${INSTALL_DIR}"
-# --- END FIX ---
-
-sudo mv "${TEMP_DIR}/${BINARY_FILE}" "${INSTALL_DIR}/${BINARY_NAME}" || error_exit "Failed to move binary to ${INSTALL_DIR}."
-sudo chmod +x "${INSTALL_DIR}/${BINARY_NAME}" || error_exit "Failed to set executable permissions."
-
-# Verify installation
-# It's good practice to check if the command is now in the path
-if ! command -v "$BINARY_NAME" &> /dev/null; then
-    error_exit "Installation failed. '${BINARY_NAME}' command not found in PATH."
-fi
-
-NEW_VERSION=$($BINARY_NAME version 2>/dev/null | awk '{print $2}')
-if [[ -z "$NEW_VERSION" ]]; then
-    error_exit "Failed to verify installation. Pancake may not be installed correctly."
-fi
-log "Pancake installed/updated successfully. Version: $NEW_VERSION"
-

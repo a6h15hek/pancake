@@ -31,24 +31,28 @@ Everything your project needs will be installed. All the build and run configura
 ## Installation
 
 ### Macos & Linux 
-To install the tool on macOS or Linux, run the following command in your terminal:
+To install or update the tool on macOS or Linux, run the following command in your terminal:
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/a6h15hek/pancake/main/macos_linux.sh)" install
+curl -fsSL https://raw.githubusercontent.com/a6h15hek/pancake/main/macos_linux.sh | bash
 ```
 To uninstall the tool, use the following command:
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/a6h15hek/pancake/main/macos_linux.sh)" uninstall
+curl -fsSL https://raw.githubusercontent.com/a6h15hek/pancake/main/macos_linux.sh | bash -s -- uninstall
 ```
 
 ### Windows
-To install the tool on Windows, open PowerShell and run the following command:
+To install or update the tool on Windows, open PowerShell **as Administrator** and run the following command:
 ```powershell
-Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/a6h15hek/pancake/main/windows.ps1')) install
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; 
+$script = (New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/a6h15hek/pancake/main/windows.ps1');
+& ([scriptblock]::Create($script)) -Action install
 ```
 
 To uninstall the tool, use the following command in PowerShell:
 ```powershell
-Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/a6h15hek/pancake/main/windows.ps1')) uninstall
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; 
+$script = (New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/a6h15hek/pancake/main/windows.ps1');
+& ([scriptblock]::Create($script)) -Action uninstall
 ```
 
 ### Using Go
