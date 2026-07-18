@@ -111,11 +111,6 @@ func handleToolCommand(args []string, action string) {
 		fmt.Printf("Error: missing tool name for %s\n", action)
 		return
 	}
-	packageManager, err := utils.EnsureToolInstalled()
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
 	toolName := args[0]
 	cfg, err := utils.GetConfig()
 	if err != nil {
@@ -145,6 +140,12 @@ func handleToolCommand(args []string, action string) {
 			fmt.Printf("Tool '%s' is not tracked via pancake. Cannot uninstall.\n", toolName)
 			return
 		}
+	}
+
+	packageManager, err := utils.EnsureToolInstalled()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
 	}
 
 	if err := utils.ExecuteCommand(fmt.Sprintf("%s %s %s", packageManager, action, toolName), ""); err != nil {

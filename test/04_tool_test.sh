@@ -16,7 +16,7 @@ build_pancake >/dev/null || { fail "build pancake"; exit 1; }
 # We keep go's tmp paths out of the way; pancake binary is already built.
 isolated_path() {
     local clean_dir
-    clean_dir="$(mktemp -d -t pancake_path_XXXXXX)"
+    clean_dir="$(mktemp_dir pancake_path)"
     # Provide minimal commands pancake's tool path needs: none for these failures.
     echo "$clean_dir"
 }

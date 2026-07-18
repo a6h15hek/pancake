@@ -181,12 +181,12 @@ func pwdProject(args []string) {
 
 	cdCommand := fmt.Sprintf("cd %s", path)
 
+	fmt.Printf("Project path: %s\n", path)
 	if err := clipboard.WriteAll(cdCommand); err != nil {
-		fmt.Printf("Failed to copy to clipboard: %v\n", err)
+		fmt.Printf("Warning: could not copy to clipboard: %v\n", err)
+		fmt.Printf("Run this manually: %s\n", cdCommand)
 		return
 	}
-
-	fmt.Printf("Project path: %s\n", path)
 	fmt.Printf("\nTip: The command 'cd %s' has been copied to your clipboard.\n", path)
 	fmt.Println("Press Ctrl+V to paste and use the command.")
 }
