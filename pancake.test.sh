@@ -1,4 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Legacy quick smoke test. For the full e2e suite, use ./test/run_all.sh
+# This script builds, installs, and runs a few basic pancake commands.
+
+set -euo pipefail
 
 check_status() {
     if [ $? -ne 0 ]; then
@@ -9,46 +13,30 @@ check_status() {
 
 run_test() {
     echo "-----------------------------------------------------------------------"
-    echo "🧪 Pancake Test Suite: $2..."
-    echo "Running command: $1" # Add a comment to show which command is running
-    eval $1
+    echo "Pancake smoke test: $2..."
+    echo "Running command: $1"
+    eval "$1"
     check_status "$2"
     echo "-----------------------------------------------------------------------"
 }
 
-echo "🧪 Pancake Test Suite: Starting..."
+# Ensure go-installed binaries are on PATH (needed for `pancake` after `go install`).
+export PATH="${GOPATH:-$HOME/go}/bin:$PATH"
+
+echo "Pancake smoke test: starting..."
 
 run_test "go build" "Building"
 run_test "go install" "Installing"
 run_test "pancake version" "Checking version"
 
-# Test to check default file create works.
-if [ -e ~/pancake.yml ]; then
-    echo "pancake.yml exists. Deleting the file..."
-    rm ~/pancake.yml
-    check_status "Delete pancake.yml"
-    echo "pancake.yml deleted successfully."
-else
-    echo "pancake.yml does not exist. No action needed."
-fi
+# Use an isolated HOME so the developer's real ~/pancake.yml is never touched.
+SMOKE_HOME="$(mktemp -d -t pancake_smoke)"
+export HOME="$SMOKE_HOME"
+trap 'rm -rf "$SMOKE_HOME"' EXIT
 
-run_test "pancake edit config" "Opening config file for the first time"
-run_test "pancake edit config" "Opening config file for the second time"
+run_test "pancake init" "First-time setup"
+run_test "pancake edit config" "Opening config file"
 run_test "pancake project list" "Listing projects"
 
-run_test "pancake project sync spring-helloworld" "Sync 1 projects"
-run_test "pancake project sync" "Sync all projects"
-
-run_test "pancake project open spring-helloworld" "Open 1 projects"
-run_test "pancake project open" "Open all projects"
-
-run_test "pancake project build spring-helloworld" "build 1 projects"
-run_test "pancake project build" "build all projects"
-
-#run_test "pancake project start spring-helloworld" "Start 1 projects"
-#run_test "pancake project start" "Start all projects"
-
-echo "🧪 Pancake Test Suite: End."
-
-
-export PATH="/Users/unicorn/go/bin:$PATH"
+echo "Pancake smoke test: done."
+echo "For the full e2e suite run: ./test/run_all.sh"
