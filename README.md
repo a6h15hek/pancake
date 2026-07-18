@@ -197,10 +197,19 @@ Config validation: `pancake` checks `home` is set and absolute, `default_ai` is 
 
 ### Build Binaries
 ```bash
-./build.sh              # builds all 6 targets + checksums.txt into ./build/
-./build.sh v1.2.0       # embed a specific version
+./build.sh              # builds all 6 targets + checksums.txt into ./build/ (version from git describe)
+./build.sh latest       # same as above, explicit
+./build.sh v1.3.0       # embed a specific version
 ```
 Targets: `linux/{amd64,arm64}`, `darwin/{amd64,arm64}`, `windows/{amd64,arm64}`. The version is injected via `-ldflags` and reported by `pancake version`. `checksums.txt` is what the install scripts verify.
+
+### Releases
+Releases are published **automatically** when a PR merges to `main`. The CI workflow:
+1. Computes the next semver from commit messages since the last tag (`feat:` → minor, `BREAKING CHANGE` → major, everything else → patch).
+2. Builds all 6 targets with that version injected via `-ldflags`.
+3. Tags the merge commit and publishes a GitHub Release with binaries + `checksums.txt` + `readme.txt`.
+
+The version badge at the top of this README and the `curl | bash` install commands always point at the latest release automatically — no manual version bumps needed in the docs. See all releases on the [Releases page](https://github.com/a6h15hek/pancake/releases).
 
 ### Testing
 ```bash
