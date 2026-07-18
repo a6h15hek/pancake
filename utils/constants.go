@@ -30,7 +30,7 @@ const (
 	Description     = "A tool to streamline project management workflow."
 )
 
-var Version = "v1.3.0"
+var Version = "v1.3.1"
 
 const (
 	LongDescription = `Example Usage:
