@@ -67,12 +67,15 @@ func newAIClient(config *utils.Config) (AIClient, error) {
 
 // aiCommand starts an interactive AI session.
 func aiCommand(args []string) {
-	// Ensure keyboard is closed on exit
 	defer func() {
 		_ = keyboard.Close()
 	}()
 
-	loadConfig()
+	cfg, err := utils.GetConfig()
+	if err != nil {
+		log.Fatalf("Error: %v\n%s", err, utils.ConfigHintEditConfig)
+	}
+	config = *cfg
 
 	client, err := newAIClient(&config)
 	if err != nil {

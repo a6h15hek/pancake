@@ -53,12 +53,21 @@ func init() {
 	rootCmd.AddCommand(commandList...)
 }
 
-func loadConfig() {
-	config = *utils.GetConfig()
+func loadConfig() bool {
+	cfg, err := utils.GetConfig()
+	if err != nil {
+		fmt.Println("Error:", err)
+		fmt.Println(utils.ConfigHintEditConfig)
+		return false
+	}
+	config = *cfg
+	return true
 }
 
 func handleProjectAction(args []string, action func(string)) {
-	loadConfig()
+	if !loadConfig() {
+		return
+	}
 	if len(args) == 0 {
 		if utils.ConfirmAction("Are you sure you want to run for all projects? This may take some time. (yes/no)") {
 			for projectName := range config.Projects {
@@ -70,10 +79,15 @@ func handleProjectAction(args []string, action func(string)) {
 	}
 }
 
-// listProjects prints all projects listed in the configuration.
 func listProjects() {
-	loadConfig()
-	fmt.Println("🔍 Loading... Listing projects")
+	if !loadConfig() {
+		return
+	}
+	fmt.Println("Loading projects")
+	if len(config.Projects) == 0 {
+		fmt.Println("No projects in pancake.yml. Run 'pancake edit config' to add one.")
+		return
+	}
 	for projectName := range config.Projects {
 		fmt.Printf("- %s\n", projectName)
 	}
@@ -104,13 +118,19 @@ func syncSingleProject(projectName string) {
 	gitExists := utils.CheckExists(gitDirPath)
 
 	if !projectExists || !gitExists {
-		fmt.Printf("🔄 Syncing... Cloning repository for project %s\n", projectName)
-		utils.CloneRepository(projectPath, project.RemoteSSHURL)
+		fmt.Printf("Syncing... Cloning repository for project %s\n", projectName)
+		if err := utils.CloneRepository(projectPath, project.RemoteSSHURL); err != nil {
+			fmt.Printf("Error syncing project %s: %v\n", projectName, err)
+			return
+		}
 	} else {
-		fmt.Printf("🔄 Syncing... Pulling changes for project %s\n", projectName)
-		utils.PullChanges(projectPath)
+		fmt.Printf("Syncing... Pulling changes for project %s\n", projectName)
+		if err := utils.PullChanges(projectPath); err != nil {
+			fmt.Printf("Error pulling changes for project %s: %v\n", projectName, err)
+			return
+		}
 	}
-	fmt.Printf("✅ Synchronized project %s successfully.\n", projectName)
+	fmt.Printf("Synchronized project %s successfully.\n", projectName)
 	fmt.Printf("\nTip: Run 'pancake open %s' to open the specified project in your preferred IDE.\n", projectName)
 }
 
@@ -120,8 +140,10 @@ func syncProjects(args []string) {
 
 // openProject opens a project in the configured code editor.
 func openProject(args []string) {
-	loadConfig()
-	fmt.Println("🔍 Loading... Opening project")
+	if !loadConfig() {
+		return
+	}
+	fmt.Println("Loading project")
 	path := config.Home
 	if len(args) > 0 {
 		projectName := args[0]
@@ -131,22 +153,23 @@ func openProject(args []string) {
 		path = filepath.Join(config.Home, projectName)
 	}
 
-	err := utils.ExecuteCommand(config.CodeEditor, path)
-	if err != nil {
-		fmt.Printf("❌ Error opening project: %v\n", err)
+	if err := utils.ExecuteCommand(config.CodeEditor, path); err != nil {
+		fmt.Printf("Error opening project: %v\n", err)
 		fmt.Printf("%s\n", utils.ProjectErrorAddConfig)
 		fmt.Printf("%s\n", utils.ProjectErrorSync)
-	} else {
-		fmt.Printf("✅ Opened project at %s\n", path)
-		if len(args) > 0 {
-			fmt.Printf("\nTip: \n- Run 'pancake build %s' to build your project.\n", args[0])
-			fmt.Printf("- Run 'pancake start %s' to start the project locally.", args[0])
-		}
+		return
+	}
+	fmt.Printf("Opened project at %s\n", path)
+	if len(args) > 0 {
+		fmt.Printf("\nTip: \n- Run 'pancake build %s' to build your project.\n", args[0])
+		fmt.Printf("- Run 'pancake run %s' to start the project locally.", args[0])
 	}
 }
 
 func pwdProject(args []string) {
-	loadConfig()
+	if !loadConfig() {
+		return
+	}
 	path := config.Home
 	if len(args) > 0 {
 		projectName := args[0]
@@ -158,20 +181,19 @@ func pwdProject(args []string) {
 
 	cdCommand := fmt.Sprintf("cd %s", path)
 
-	err := clipboard.WriteAll(cdCommand)
-	if err != nil {
-		fmt.Printf("❌ Failed to copy to clipboard: %v\n", err)
+	if err := clipboard.WriteAll(cdCommand); err != nil {
+		fmt.Printf("Failed to copy to clipboard: %v\n", err)
 		return
 	}
 
-	fmt.Printf("📁 Project path: %s\n", path)
+	fmt.Printf("Project path: %s\n", path)
 	fmt.Printf("\nTip: The command 'cd %s' has been copied to your clipboard.\n", path)
 	fmt.Println("Press Ctrl+V to paste and use the command.")
 }
 
 // buildSingleProject builds a single project by name.
 func buildSingleProject(projectName string) {
-	fmt.Printf("🔨 Building... Running build command for project %s\n", projectName)
+	fmt.Printf("Building... Running build command for project %s\n", projectName)
 	project, ok := getProject(projectName)
 	if !ok {
 		return
@@ -179,24 +201,23 @@ func buildSingleProject(projectName string) {
 
 	projectPath := filepath.Join(config.Home, projectName)
 	if !utils.CheckExists(projectPath) {
-		fmt.Printf("❌ Project path %s does not exist.\n", projectPath)
+		fmt.Printf("Project path %s does not exist.\n", projectPath)
 		fmt.Printf("%s\n", utils.ProjectErrorSync)
 		return
 	}
 
 	if project.Build == "" {
-		fmt.Println("❌ Build command not specified in the configuration.")
+		fmt.Println("Build command not specified in pancake.yml.")
 		fmt.Printf("%s\n", utils.ProjectErrorAddCommand)
 		return
 	}
 
-	err := utils.ExecuteCommand(project.Build, projectPath)
-	if err != nil {
-		fmt.Printf("❌ Error building project %v: %v\n", projectName, err)
-	} else {
-		fmt.Printf("✅ Built project %s successfully.\n", projectName)
-		fmt.Printf("\nTip: Run 'pancake start %s' to start the project locally.\n", projectName)
+	if err := utils.ExecuteCommand(project.Build, projectPath); err != nil {
+		fmt.Printf("Error building project %s: %v\n", projectName, err)
+		return
 	}
+	fmt.Printf("Built project %s successfully.\n", projectName)
+	fmt.Printf("\nTip: Run 'pancake run %s' to start the project locally.\n", projectName)
 }
 
 func buildProject(args []string) {
@@ -205,7 +226,7 @@ func buildProject(args []string) {
 
 // runSingleProject runs a single project by name.
 func runSingleProject(projectName string) {
-	fmt.Printf("🚀 Running project %s\n", projectName)
+	fmt.Printf("Running project %s\n", projectName)
 	project, ok := getProject(projectName)
 	if !ok {
 		return
@@ -213,23 +234,24 @@ func runSingleProject(projectName string) {
 
 	projectPath := filepath.Join(config.Home, projectName)
 	if !utils.CheckExists(projectPath) {
-		fmt.Printf("❌ Project path %s does not exist.\n", projectPath)
+		fmt.Printf("Project path %s does not exist.\n", projectPath)
 		fmt.Printf("%s\n", utils.ProjectErrorAddConfig)
 		return
 	}
 
 	if project.Run == "" {
-		fmt.Println("❌ Run command not specified in the configuration.")
+		fmt.Println("Run command not specified in pancake.yml.")
 		fmt.Printf("%s\n", utils.ProjectErrorAddCommand)
 		return
 	}
 
-	err := utils.ExecuteCommandInNewTerminal(project.Run, projectPath, projectName, &projectPIDs)
-	if err != nil {
-		fmt.Printf("❌ Error running project %v: %v\n", projectName, err)
-	} else {
-		fmt.Printf("✅ Started project %s successfully.\n", projectName)
-		utils.SaveProjectPIDs(config.Home, projectPIDs)
+	if err := utils.ExecuteCommandInNewTerminal(project.Run, projectPath, projectName, &projectPIDs); err != nil {
+		fmt.Printf("Error running project %s: %v\n", projectName, err)
+		return
+	}
+	fmt.Printf("Started project %s successfully.\n", projectName)
+	if err := utils.SaveProjectPIDs(config.Home, projectPIDs); err != nil {
+		fmt.Printf("Warning: could not save project PIDs: %v\n", err)
 	}
 }
 
@@ -237,11 +259,14 @@ func runProject(args []string) {
 	handleProjectAction(args, runSingleProject)
 }
 
-// monitorProject prints a table with information about all projects.
 func monitorProject() {
-	loadConfig()
-	fmt.Println("🔍 Monitoring... Fetching project status")
-	utils.LoadProjectPIDs(config.Home, &projectPIDs)
+	if !loadConfig() {
+		return
+	}
+	fmt.Println("Monitoring... Fetching project status")
+	if err := utils.LoadProjectPIDs(config.Home, &projectPIDs); err != nil {
+		fmt.Printf("Warning: could not load project PIDs: %v\n", err)
+	}
 
 	data := [][]string{
 		{"Project Name", "Running", "PID", "Port", "Type"},
@@ -250,15 +275,15 @@ func monitorProject() {
 	for projectName, project := range config.Projects {
 		running := "No"
 		pid := "-"
-		port := "-"
+		port := project.Port
 		projectType := project.Type
 
 		if pidVal, exists := projectPIDs[projectName]; exists {
 			running = "Yes"
 			pid = fmt.Sprintf("%d", pidVal)
-			if project.Port != "" {
-				port = project.Port
-			}
+		}
+		if port == "" {
+			port = "-"
 		}
 
 		data = append(data, []string{projectName, running, pid, port, projectType})

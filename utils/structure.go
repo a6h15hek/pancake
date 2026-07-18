@@ -1,9 +1,11 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"gopkg.in/yaml.v2"
@@ -42,51 +44,122 @@ type Project struct {
 	Build        string `yaml:"build,omitempty"`
 }
 
-func GetConfig() *Config {
+func ConfigPath() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Println("❌ Error getting user home directory:", err)
-		os.Exit(1)
+		return "", fmt.Errorf("could not resolve user home directory: %w", err)
 	}
-	configPath := filepath.Join(homeDir, "pancake.yml")
+	return filepath.Join(homeDir, ConfigFileName), nil
+}
+
+func ExpandHomePath(path string) (string, error) {
+	if path == "" {
+		return "", nil
+	}
+	expanded := os.ExpandEnv(path)
+	if runtime.GOOS == "windows" {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return "", fmt.Errorf("could not resolve user home directory: %w", err)
+		}
+		expanded = replaceCaseInsensitive(expanded, "%userprofile%", homeDir)
+	}
+	return expanded, nil
+}
+
+func replaceCaseInsensitive(input, target, replacement string) string {
+	lower := strings.ToLower(input)
+	targetLower := strings.ToLower(target)
+	var builder strings.Builder
+	for i := 0; i < len(input); {
+		if strings.HasPrefix(lower[i:], targetLower) {
+			builder.WriteString(replacement)
+			i += len(targetLower)
+			continue
+		}
+		builder.WriteByte(input[i])
+		i++
+	}
+	return builder.String()
+}
+
+func GetConfig() (*Config, error) {
+	configPath, err := ConfigPath()
+	if err != nil {
+		return nil, err
+	}
 
 	file, err := os.ReadFile(configPath)
 	if err != nil {
-		fmt.Println("❌ Error reading config file:", err)
-		os.Exit(1)
+		if os.IsNotExist(err) {
+			return nil, errors.New(fmt.Sprintf(ConfigErrNotFound, configPath))
+		}
+		return nil, errors.New(fmt.Sprintf(ConfigErrReadFailed, configPath, configPath))
 	}
 
 	var config Config
-	err = yaml.Unmarshal(file, &config)
-	if err != nil {
-		fmt.Println("❌ Error unmarshaling config file:", err)
-		os.Exit(1)
+	if err := yaml.Unmarshal(file, &config); err != nil {
+		return nil, errors.New(fmt.Sprintf(ConfigErrParseFailed, err.Error(), configPath))
 	}
 
-	// Replace $HOME with actual home directory
-	config.Home = strings.Replace(config.Home, "$HOME", homeDir, -1)
+	expanded, err := ExpandHomePath(config.Home)
+	if err != nil {
+		return nil, err
+	}
+	config.Home = expanded
 
-	return &config
+	if err := ValidateConfig(&config); err != nil {
+		return nil, err
+	}
+
+	return &config, nil
 }
 
-func UpdateConfig(config *Config) {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Println("❌ Error getting user home directory:", err)
-		return
+func ValidateConfig(config *Config) error {
+	var issues []string
+
+	if strings.TrimSpace(config.Home) == "" {
+		issues = append(issues, fmt.Sprintf(ConfigErrHomeEmpty))
+	} else if !filepath.IsAbs(config.Home) {
+		issues = append(issues, fmt.Sprintf(ConfigErrHomeRelative, config.Home))
 	}
-	configPath := filepath.Join(homeDir, "pancake.yml")
+
+	switch config.DefaultAI {
+	case "", "gemini", "chatgpt":
+	default:
+		issues = append(issues, fmt.Sprintf(ConfigErrDefaultAIInvalid, config.DefaultAI))
+	}
+
+	for projectName := range config.Projects {
+		if strings.ContainsAny(projectName, `/\`) {
+			issues = append(issues, fmt.Sprintf(ConfigErrProjectNameInvalid, projectName))
+			continue
+		}
+		project := config.Projects[projectName]
+		if strings.TrimSpace(project.RemoteSSHURL) == "" {
+			issues = append(issues, fmt.Sprintf(ConfigErrProjectRemoteMissing, projectName, projectName))
+		}
+	}
+
+	if len(issues) == 0 {
+		return nil
+	}
+	return errors.New(strings.Join(append([]string{"pancake.yml has issues:"}, issues...), "\n - "))
+}
+
+func UpdateConfig(config *Config) error {
+	configPath, err := ConfigPath()
+	if err != nil {
+		return err
+	}
 
 	data, err := yaml.Marshal(config)
 	if err != nil {
-		fmt.Println("❌ Error marshaling config data:", err)
-		return
+		return fmt.Errorf("could not encode pancake.yml: %w", err)
 	}
 
-	err = os.WriteFile(configPath, data, 0644)
-	if err != nil {
-		fmt.Println("❌ Error writing config file:", err)
-		return
+	if err := os.WriteFile(configPath, data, 0644); err != nil {
+		return fmt.Errorf("could not write pancake.yml at %s: %w", configPath, err)
 	}
-	fmt.Println("✅ Config file updated successfully.")
+	return nil
 }

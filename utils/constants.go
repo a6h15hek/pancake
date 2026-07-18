@@ -27,8 +27,12 @@ package utils
 
 const (
 	AppName         = "Pancake"
-	Version         = "v1.1.1"
 	Description     = "A tool to streamline project management workflow."
+)
+
+var Version = "v1.1.1"
+
+const (
 	LongDescription = `Example Usage:
   pancake list 
   pancake sync [PROJECT_NAME]
@@ -114,6 +118,53 @@ Troubleshooting:
 	ProjectErrorAddConfig  = `Run 'pancake edit config' to check if project exists in configuration file`
 	ProjectErrorSync       = `Run 'pancake sync <project_name>' to sync the project.`
 	ProjectErrorAddCommand = `Run 'pancake edit config' to add commands.`
+)
+
+const (
+	ConfigFileName = "pancake.yml"
+	ConfigIntro    = "Edit ~/pancake.yml (run 'pancake edit config')."
+
+	ConfigErrNotFound = `pancake.yml was not found at %s.
+Run 'pancake init' to create it, or copy your backup pancake.yml to your home directory.`
+
+	ConfigErrReadFailed = `Could not read pancake.yml at %s.
+Check file permissions: 'chmod 644 %s' or remove it and run 'pancake init'.`
+
+	ConfigErrParseFailed = `pancake.yml is not valid YAML:
+%s
+Fix the syntax in %s (look at the line/column above).
+Run 'pancake edit config' to open it, or run 'pancake init --force' to reset it.`
+
+	ConfigErrHomeEmpty = `config field 'home' is empty in pancake.yml.
+Set it under 'home:'. Examples:
+  home: $HOME/pancake          # macOS / Linux
+  home: '%%userprofile%%/pancake'   # Windows
+Run 'pancake edit config'.`
+
+	ConfigErrHomeRelative = `config field 'home' is not an absolute path: '%s'.
+Use $HOME (macOS/Linux) or %%userprofile%% (Windows) so it resolves to a full path.
+Run 'pancake edit config'.`
+
+	ConfigErrDefaultAIInvalid = `config field 'default_ai' has unsupported value '%s'.
+Allowed values: 'gemini' or 'chatgpt'. Remove the line to disable AI.
+Run 'pancake edit config'.`
+
+	ConfigErrProjectNameInvalid = `project name '%s' contains path separators and is unsafe.
+Rename it in pancake.yml under 'projects:' (use letters, numbers, '-', '_').
+Run 'pancake edit config'.`
+
+	ConfigErrProjectRemoteMissing = `project '%s' is missing 'remote_ssh_url' in pancake.yml.
+Add it under 'projects: %s: remote_ssh_url: git@github.com:org/repo.git'.
+Run 'pancake edit config'.`
+
+	ConfigHomeDirNotExists = `pancake home directory '%s' does not exist.
+Run 'pancake init' to create it, or create it manually: mkdir -p '%s'.`
+
+	ConfigHintEditConfig = `Troubleshooting:
+  - 'pancake edit config'   opens ~/pancake.yml in your editor
+  - 'pancake init --force'  re-creates a fresh config (backs up the old one)
+  - 'pancake version'       shows the installed version
+  - Docs: https://github.com/a6h15hek/pancake/blob/main/USAGE.md`
 )
 
 const (

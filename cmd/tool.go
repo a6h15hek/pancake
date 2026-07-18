@@ -40,112 +40,135 @@ func init() {
 		&cobra.Command{Use: "list", Aliases: []string{"l"}, Run: func(cmd *cobra.Command, args []string) { listTools() }},
 		&cobra.Command{Use: "update", Run: func(cmd *cobra.Command, args []string) { updateTools() }},
 		&cobra.Command{Use: "search", Aliases: []string{"s"}, Run: func(cmd *cobra.Command, args []string) { searchTool(args) }},
-		&cobra.Command{Use: "setup", Run: func(cmd *cobra.Command, args []string) { setupTools() }},
+		&cobra.Command{Use: "setup", Run: func(cmd *cobra.Command, args []string) { _ = setupTools() }},
 		&cobra.Command{Use: "info", Run: func(cmd *cobra.Command, args []string) { handleToolCommand(args, "info") }},
 		&cobra.Command{Use: "upgrade", Run: func(cmd *cobra.Command, args []string) { handleToolCommand(args, "upgrade") }},
 	)
 }
 
 func listTools() {
-	fmt.Println("🔍 Loading... Listing tools")
-	config := *utils.GetConfig()
-	for _, toolName := range config.Tools {
+	fmt.Println("Loading tools")
+	cfg, err := utils.GetConfig()
+	if err != nil {
+		fmt.Println("Error:", err)
+		fmt.Println(utils.ConfigHintEditConfig)
+		return
+	}
+	if len(cfg.Tools) == 0 {
+		fmt.Println("No tools listed in pancake.yml. Run 'pancake tool install <name>' to add one.")
+		return
+	}
+	for _, toolName := range cfg.Tools {
 		fmt.Printf("- %s\n", toolName)
 	}
 }
 
-func setupTools() {
+func setupTools() error {
 	platform := runtime.GOOS
-	var success bool
-
 	switch platform {
 	case "windows":
-		fmt.Println("📌 The Pancake uses Chocolatey internally.")
-		success = utils.SetupChocolatey()
+		fmt.Println("Pancake uses Chocolatey internally on Windows.")
+		if err := utils.SetupChocolatey(); err != nil {
+			return err
+		}
 	case "darwin", "linux":
-		fmt.Println("📌 The Pancake uses Homebrew internally.")
-		success = utils.SetupHomebrew()
+		fmt.Println("Pancake uses Homebrew internally on macOS/Linux.")
+		if err := utils.SetupHomebrew(); err != nil {
+			return err
+		}
 	default:
-		fmt.Println("❌ Unsupported platform:", platform)
-		return
+		return fmt.Errorf("unsupported platform: %s", platform)
 	}
 
-	if !success {
-		fmt.Println("❌ Setup failed.")
-		return
+	cfg, err := utils.GetConfig()
+	if err != nil {
+		return err
 	}
-
-	config := *utils.GetConfig()
-	for _, toolName := range config.Tools {
+	for _, toolName := range cfg.Tools {
 		handleToolCommand([]string{toolName}, "install")
 	}
+	return nil
 }
 
 func searchTool(args []string) {
 	if len(args) == 0 {
-		fmt.Println("❌ Error: Missing search query")
+		fmt.Println("Error: missing search query. Usage: pancake tool search <query>")
 		return
 	}
-	if !utils.EnsureToolInstalled() {
+	packageManager, err := utils.EnsureToolInstalled()
+	if err != nil {
+		fmt.Println("Error:", err)
 		return
 	}
 	query := strings.Join(args, " ")
-	cmdStr := fmt.Sprintf("%s search %s", utils.GetPackageManager(), query)
-	err := utils.ExecuteCommand(cmdStr, "")
-	if err != nil {
-		fmt.Println("❌ Error searching tool:", err)
+	if err := utils.ExecuteCommand(fmt.Sprintf("%s search %s", packageManager, query), ""); err != nil {
+		fmt.Println("Error searching tool:", err)
 	}
 }
 
 func handleToolCommand(args []string, action string) {
 	if len(args) == 0 {
-		fmt.Printf("❌ Error: Missing tool name for %s\n", action)
+		fmt.Printf("Error: missing tool name for %s\n", action)
 		return
 	}
-	if !utils.EnsureToolInstalled() {
+	packageManager, err := utils.EnsureToolInstalled()
+	if err != nil {
+		fmt.Println("Error:", err)
 		return
 	}
 	toolName := args[0]
-	config := *utils.GetConfig()
+	cfg, err := utils.GetConfig()
+	if err != nil {
+		fmt.Println("Error:", err)
+		fmt.Println(utils.ConfigHintEditConfig)
+		return
+	}
 
 	switch action {
 	case "install":
-		for _, t := range config.Tools {
-			if t == toolName {
-				fmt.Printf("🔄 Tool '%s' already installed. Updating instead.\n", toolName)
+		for _, existing := range cfg.Tools {
+			if existing == toolName {
+				fmt.Printf("Tool '%s' already tracked in pancake.yml. Running upgrade instead.\n", toolName)
 				action = "upgrade"
 				break
 			}
 		}
 	case "uninstall":
 		found := false
-		for _, t := range config.Tools {
-			if t == toolName {
+		for _, existing := range cfg.Tools {
+			if existing == toolName {
 				found = true
 				break
 			}
 		}
 		if !found {
-			fmt.Printf("❌ Tool '%s' is not installed via pancake. Cannot uninstall.\n", toolName)
+			fmt.Printf("Tool '%s' is not tracked via pancake. Cannot uninstall.\n", toolName)
 			return
 		}
 	}
 
-	cmdStr := fmt.Sprintf("%s %s %s", utils.GetPackageManager(), action, toolName)
-	err := utils.ExecuteCommand(cmdStr, "")
-	if err != nil {
-		fmt.Printf("❌ Error during %s of tool: %s\n", action, err)
+	if err := utils.ExecuteCommand(fmt.Sprintf("%s %s %s", packageManager, action, toolName), ""); err != nil {
+		fmt.Printf("Error during %s of tool '%s': %v\n", action, toolName, err)
 		return
 	}
 
-	if action == "install" {
-		config.Tools = append(config.Tools, toolName)
-		utils.UpdateConfig(&config)
-	} else if action == "uninstall" {
-		for i, t := range config.Tools {
-			if t == toolName {
-				config.Tools = append(config.Tools[:i], config.Tools[i+1:]...)
-				utils.UpdateConfig(&config)
+	switch action {
+	case "install":
+		cfg.Tools = append(cfg.Tools, toolName)
+		if err := utils.UpdateConfig(cfg); err != nil {
+			fmt.Println("Error updating pancake.yml:", err)
+		} else {
+			fmt.Println("Config file updated successfully.")
+		}
+	case "uninstall":
+		for i, existing := range cfg.Tools {
+			if existing == toolName {
+				cfg.Tools = append(cfg.Tools[:i], cfg.Tools[i+1:]...)
+				if err := utils.UpdateConfig(cfg); err != nil {
+					fmt.Println("Error updating pancake.yml:", err)
+				} else {
+					fmt.Println("Config file updated successfully.")
+				}
 				break
 			}
 		}
@@ -153,12 +176,12 @@ func handleToolCommand(args []string, action string) {
 }
 
 func updateTools() {
-	if !utils.EnsureToolInstalled() {
+	packageManager, err := utils.EnsureToolInstalled()
+	if err != nil {
+		fmt.Println("Error:", err)
 		return
 	}
-	cmdStr := fmt.Sprintf("%s update", utils.GetPackageManager())
-	err := utils.ExecuteCommand(cmdStr, "")
-	if err != nil {
-		fmt.Println("❌ Error updating tools:", err)
+	if err := utils.ExecuteCommand(fmt.Sprintf("%s update", packageManager), ""); err != nil {
+		fmt.Println("Error updating tools:", err)
 	}
 }

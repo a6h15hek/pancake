@@ -11,129 +11,125 @@ import (
 	"strings"
 )
 
-/* Common Functions used across the project.
-* This file is part of the 'Pancake' project and contains common utility functions
-* that are designed to be reusable across various parts of the project.
-**/
-
-// OpenTextFileInDefaultEditor opens a text file in the default editor based on the OS.
-func OpenTextFileInDefaultEditor(filePath string) {
-	switch os := runtime.GOOS; os {
+func OpenTextFileInDefaultEditor(filePath string) error {
+	var command *exec.Cmd
+	switch runtime.GOOS {
 	case "windows":
-		exec.Command("notepad.exe", filePath).Start()
+		command = exec.Command("cmd", "/c", "start", "", filePath)
 	case "darwin":
-		exec.Command("open", filePath).Start() // MacOS
-	default: // Assume Linux/Unix
-		exec.Command("xdg-open", filePath).Start()
+		command = exec.Command("open", filePath)
+	default:
+		command = exec.Command("xdg-open", filePath)
 	}
+	if err := command.Start(); err != nil {
+		return fmt.Errorf("could not open %s in default editor: %w", filePath, err)
+	}
+	return nil
 }
 
-// CheckExists checks if a given path exists.
 func CheckExists(path string) bool {
 	_, err := os.Stat(path)
-	return !os.IsNotExist(err)
+	return err == nil
 }
 
-// CloneRepository clones a git repository to a specified path.
-func CloneRepository(path, remoteURL string) {
-	err := os.RemoveAll(path)
-	if err != nil {
-		fmt.Printf("Error removing existing folder: %v\n", err)
-		return
+func CloneRepository(path, remoteURL string) error {
+	if CheckExists(filepath.Join(path, ".git")) {
+		return PullChanges(path)
 	}
-	cmdStr := fmt.Sprintf("git clone %s %s", remoteURL, path)
-	err = ExecuteCommand(cmdStr, ".", true)
-	if err != nil {
-		fmt.Printf("Error cloning repository: %v\n", err)
-	} else {
-		fmt.Printf("Cloned repository into %s\n", path)
+	if CheckExists(path) {
+		return fmt.Errorf("target path %s already exists and is not a git repository; move or remove it before syncing", path)
 	}
+	parentDir := filepath.Dir(path)
+	if err := os.MkdirAll(parentDir, 0755); err != nil {
+		return fmt.Errorf("could not create parent directory %s: %w", parentDir, err)
+	}
+	if err := ExecuteCommand(fmt.Sprintf("git clone %s %s", remoteURL, path), ".", true); err != nil {
+		return fmt.Errorf("git clone failed for %s: %w. Ensure your SSH key is set up (ssh -T git@github.com) or switch remote_ssh_url to an https URL in pancake.yml", remoteURL, err)
+	}
+	return nil
 }
 
-// PullChanges pulls the latest changes from a git repository.
-func PullChanges(path string) {
-	cmdStr := "git pull"
-	err := ExecuteCommand(cmdStr, path, true)
-	if err != nil {
-		fmt.Printf("Error pulling latest changes: %v\n", err)
-	} else {
-		fmt.Printf("Updated repository in %s\n", path)
+func PullChanges(path string) error {
+	if err := ExecuteCommand("git pull", path, true); err != nil {
+		return fmt.Errorf("git pull failed in %s: %w", path, err)
 	}
+	return nil
 }
 
-// ConfirmAction prompts the user to confirm an action.
 func ConfirmAction(message string) bool {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Printf("%s", message)
-	response, _ := reader.ReadString('\n')
-	confirm := strings.TrimSpace(response) == "yes" || strings.TrimSpace(response) == "y"
-	if !confirm {
+	response, err := reader.ReadString('\n')
+	if err != nil {
+		return false
+	}
+	trimmed := strings.TrimSpace(strings.ToLower(response))
+	if trimmed != "yes" && trimmed != "y" {
 		fmt.Println("Action aborted.")
 		return false
 	}
 	return true
 }
 
-// ExecuteCommand runs a shell command in a specified directory and prints the command and its logs.
+func buildShellCommand(cmdStr string) *exec.Cmd {
+	if runtime.GOOS == "windows" {
+		return exec.Command("cmd", "/c", cmdStr)
+	}
+	return exec.Command("sh", "-c", cmdStr)
+}
+
 func ExecuteCommand(cmdStr, dir string, isLogging ...bool) error {
 	logging := true
 	if len(isLogging) > 0 {
 		logging = isLogging[0]
 	}
-
 	if logging {
 		fmt.Printf("%s > %s\n", dir, cmdStr)
 	}
-
-	cmd := exec.Command("sh", "-c", cmdStr)
-	cmd.Dir = dir
-
+	command := buildShellCommand(cmdStr)
+	command.Dir = dir
 	if logging {
-		// Capture and print the command's output and error logs
-		cmd.Stdout = newLoggingWriter()
-		cmd.Stderr = newLoggingWriter()
+		command.Stdout = os.Stdout
+		command.Stderr = os.Stderr
 	}
-
-	return cmd.Run()
+	return command.Run()
 }
 
-// NewLoggingWriter creates a writer that prints the logs.
-func newLoggingWriter() *loggingWriter {
-	return &loggingWriter{}
-}
-
-type loggingWriter struct{}
-
-func (lw *loggingWriter) Write(p []byte) (n int, err error) {
-	fmt.Print(string(p))
-	return len(p), nil
-}
-
-// ExecuteCommandInNewTerminal runs a shell command in a specified directory in a new terminal window/tab and prints the command and its logs.
 func ExecuteCommandInNewTerminal(cmdStr, dir, projectName string, projectPIDs *map[string]int) error {
 	var command *exec.Cmd
-
 	switch runtime.GOOS {
 	case "windows":
 		command = exec.Command("cmd", "/c", "start", "cmd", "/k", fmt.Sprintf("cd /d %s && %s", dir, cmdStr))
 	case "darwin":
 		command = exec.Command("osascript", "-e", fmt.Sprintf(`tell application "Terminal" to do script "cd %s && %s"`, dir, cmdStr))
 	default:
-		command = exec.Command("gnome-terminal", "--", "sh", "-c", fmt.Sprintf("cd %s && %s", dir, cmdStr))
+		terminal, ok := detectLinuxTerminal()
+		if !ok {
+			return fmt.Errorf("no supported terminal emulator found (tried gnome-terminal, konsole, xfce4-terminal, x-terminal-emulator, xterm). Open %s and run '%s' manually", dir, cmdStr)
+		}
+		command = exec.Command(terminal, "--", "sh", "-c", fmt.Sprintf("cd %s && %s; exec sh", dir, cmdStr))
 	}
-
-	err := command.Start()
-	if err != nil {
-		return err
+	if err := command.Start(); err != nil {
+		return fmt.Errorf("could not launch terminal for %s: %w", projectName, err)
 	}
-
 	(*projectPIDs)[projectName] = command.Process.Pid
 	return nil
 }
 
-// printTable prints a table with the given data.
+func detectLinuxTerminal() (string, bool) {
+	candidates := []string{"gnome-terminal", "konsole", "xfce4-terminal", "x-terminal-emulator", "xterm"}
+	for _, candidate := range candidates {
+		if _, err := exec.LookPath(candidate); err == nil {
+			return candidate, true
+		}
+	}
+	return "", false
+}
+
 func PrintTable(data [][]string) {
-	// Find the maximum width for each column
+	if len(data) == 0 {
+		return
+	}
 	colWidths := make([]int, len(data[0]))
 	for _, row := range data {
 		for colIndex, col := range row {
@@ -142,96 +138,88 @@ func PrintTable(data [][]string) {
 			}
 		}
 	}
-
-	// Print the table with separators and proper alignment
 	for _, row := range data {
 		for colIndex, col := range row {
 			fmt.Printf("| %-*s ", colWidths[colIndex], col)
 		}
 		fmt.Println("|")
 	}
-
-	// Print the table border
 	for colIndex := range data[0] {
 		fmt.Printf("| %s ", strings.Repeat("-", colWidths[colIndex]))
 	}
 	fmt.Println("|")
 }
 
-// SaveProjectPIDs saves the project PIDs to a specified file.
-func SaveProjectPIDs(fileLocation string, projectPIDs map[string]int) {
+func SaveProjectPIDs(fileLocation string, projectPIDs map[string]int) error {
 	data, err := json.Marshal(projectPIDs)
 	if err != nil {
-		fmt.Printf("❌ Error saving project PIDs: %v\n", err)
-		return
+		return fmt.Errorf("could not encode project pids: %w", err)
 	}
-
-	err = os.WriteFile(filepath.Join(fileLocation, "pids.json"), data, 0644)
-	if err != nil {
-		fmt.Printf("❌ Error writing project PIDs file: %v\n", err)
+	if err := os.MkdirAll(fileLocation, 0755); err != nil {
+		return fmt.Errorf("could not create %s: %w", fileLocation, err)
 	}
+	return os.WriteFile(filepath.Join(fileLocation, "pids.json"), data, 0644)
 }
 
-// LoadProjectPIDs loads the project PIDs from a specified file.
-func LoadProjectPIDs(fileLocation string, projectPIDs *map[string]int) {
+func LoadProjectPIDs(fileLocation string, projectPIDs *map[string]int) error {
 	data, err := os.ReadFile(filepath.Join(fileLocation, "pids.json"))
 	if err != nil {
-		if !os.IsNotExist(err) {
-			fmt.Printf("❌ Error reading project PIDs file: %v\n", err)
+		if os.IsNotExist(err) {
+			return nil
 		}
-		return
+		return fmt.Errorf("could not read project pids file: %w", err)
 	}
-
-	err = json.Unmarshal(data, projectPIDs)
-	if err != nil {
-		fmt.Printf("❌ Error unmarshaling project PIDs: %v\n", err)
-	}
+	return json.Unmarshal(data, projectPIDs)
 }
 
-func SetupChocolatey() bool {
-	if ConfirmAction("Do you want to proceed with the installation? (yes/no):") {
-		fmt.Println("📌 Installing Chocolatey...")
-		err := ExecuteCommand("Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))", "")
-		if err != nil {
-			fmt.Println("❌ Error installing Chocolatey:", err)
-		} else {
-			return true
-		}
+func SetupChocolatey() error {
+	if runtime.GOOS != "windows" {
+		return fmt.Errorf("chocolatey is only supported on windows")
 	}
-	return false
+	if !ConfirmAction("Do you want to install Chocolatey? (yes/no):") {
+		return fmt.Errorf("chocolatey installation cancelled")
+	}
+	fmt.Println("Installing Chocolatey...")
+	installScript := "Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))"
+	command := exec.Command("powershell", "-NoProfile", "-Command", installScript)
+	command.Stdout = os.Stdout
+	command.Stderr = os.Stderr
+	if err := command.Run(); err != nil {
+		return fmt.Errorf("chocolatey installation failed: %w", err)
+	}
+	return nil
 }
 
-func SetupHomebrew() bool {
-	if ConfirmAction("Do you want to proceed with the installation? (yes/no):") {
-		fmt.Println("📌 Installing Homebrew...")
-		err := ExecuteCommand("/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"", "")
-		if err != nil {
-			fmt.Println("❌ Error installing Homebrew:", err)
-		} else {
-			return true
-		}
+func SetupHomebrew() error {
+	if runtime.GOOS == "windows" {
+		return fmt.Errorf("homebrew is not supported on windows; pancake uses chocolatey there")
 	}
-	return false
+	if !ConfirmAction("Do you want to install Homebrew? (yes/no):") {
+		return fmt.Errorf("homebrew installation cancelled")
+	}
+	fmt.Println("Installing Homebrew...")
+	if err := ExecuteCommand(`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`, ""); err != nil {
+		return fmt.Errorf("homebrew installation failed: %w", err)
+	}
+	return nil
 }
 
-func EnsureToolInstalled() bool {
-	platform := runtime.GOOS
-	var cmdStr string
-	switch platform {
-	case "windows":
-		cmdStr = "choco -v"
-	case "darwin", "linux":
-		cmdStr = "brew -v"
-	default:
-		fmt.Println("Unsupported platform:", platform)
-		return false
+func EnsureToolInstalled() (string, error) {
+	packageManager := GetPackageManager()
+	if packageManager == "" {
+		return "", fmt.Errorf("unsupported platform: %s", runtime.GOOS)
 	}
-	err := ExecuteCommand(cmdStr, "", false)
-	if err != nil {
-		fmt.Printf("%s is not installed. Please run 'pancake tool setup' first.\n", GetPackageManager())
-		return false
+	versionFlag := "-v"
+	if runtime.GOOS == "windows" {
+		versionFlag = "--version"
 	}
-	return true
+	checkCommand := buildShellCommand(fmt.Sprintf("%s %s", packageManager, versionFlag))
+	checkCommand.Stdout = nil
+	checkCommand.Stderr = nil
+	if err := checkCommand.Run(); err != nil {
+		return "", fmt.Errorf("%s is not installed or not on PATH. Run 'pancake tool setup' first, or install %s manually", packageManager, packageManager)
+	}
+	return packageManager, nil
 }
 
 func GetPackageManager() string {
@@ -241,7 +229,6 @@ func GetPackageManager() string {
 	case "darwin", "linux":
 		return "brew"
 	default:
-		fmt.Println("Unsupported platform:", runtime.GOOS)
 		return ""
 	}
 }
