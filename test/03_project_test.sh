@@ -16,11 +16,11 @@ write_valid_config() {
     setup_mock_home
     # Use a local bare repo as the remote so sync tests need no network.
     local bare_repo
-    bare_repo="$(mktemp -d -t pancake_bare)"
+    bare_repo="$(mktemp_dir pancake_bare)"
     git init -q --bare "$bare_repo" >/dev/null 2>&1
     # Seed an initial commit so git pull works later.
     local seed
-    seed="$(mktemp -d -t pancake_seed)"
+    seed="$(mktemp_dir pancake_seed)"
     git -C "$seed" init -q >/dev/null 2>&1
     git -C "$seed" config user.email test@test
     git -C "$seed" config user.name test

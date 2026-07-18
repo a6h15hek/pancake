@@ -14,7 +14,7 @@ build_pancake >/dev/null || { fail "build pancake"; exit 1; }
 # Stage a release directory that mirrors GitHub's URL layout:
 #   http://server/releases/latest/download/<artifact>
 #   http://server/releases/latest/download/checksums.txt
-STAGE_DIR="$(mktemp -d -t pancake_release)"
+STAGE_DIR="$(mktemp_dir pancake_release)"
 RELEASE_DIR="$STAGE_DIR/releases/latest/download"
 mkdir -p "$RELEASE_DIR"
 goos="$(uname -s | tr '[:upper:]' '[:lower:]')"
@@ -29,7 +29,7 @@ cp "$PANCAKE_BIN" "$RELEASE_DIR/$BINARY_ARTIFACT"
 
 # Point the installer at our mock server by rewriting the repo URL via env.
 # macos_linux.sh hardcodes REPO=github.com/...; we vendor a patched copy.
-INSTALL_PREFIX="$(mktemp -d -t pancake_prefix)"
+INSTALL_PREFIX="$(mktemp_dir pancake_prefix)"
 INSTALL_BIN_DIR="$INSTALL_PREFIX/bin"
 mkdir -p "$INSTALL_BIN_DIR"
 
@@ -55,7 +55,7 @@ start_mock_release_server_with_root() {
 start_mock_release_server_with_root || { fail "start mock server"; exit 1; }
 
 # Build a patched copy of macos_linux.sh that points at our local server.
-PATCHED_SCRIPT="$(mktemp -t pancake_install).sh"
+PATCHED_SCRIPT="$(mktemp_file pancake_install).sh"
 sed -E \
     -e "s#^REPO=\"github.com/a6h15hek/pancake\"#REPO=\"127.0.0.1:${MOCK_SERVER_PORT}\"#" \
     -e "s#https://\\\$\{REPO\}/releases#http://\${REPO}/releases#g" \
@@ -105,7 +105,7 @@ assert_contains "help lists uninstall action" "uninstall" \
 
 # Unsupported OS is reported clearly: override uname -s via a function in a
 # single subshell so detect_platform sees "solaris" and rejects it.
-UNSUPPORTED_OS_RUNNER="$(mktemp -t pancake_os_test).sh"
+UNSUPPORTED_OS_RUNNER="$(mktemp_file pancake_os_test).sh"
 cat > "$UNSUPPORTED_OS_RUNNER" <<OS_EOF
 #!/usr/bin/env bash
 uname() {

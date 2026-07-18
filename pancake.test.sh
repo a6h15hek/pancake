@@ -30,7 +30,7 @@ run_test "go install" "Installing"
 run_test "pancake version" "Checking version"
 
 # Use an isolated HOME so the developer's real ~/pancake.yml is never touched.
-SMOKE_HOME="$(mktemp -d -t pancake_smoke)"
+SMOKE_HOME="$(mktemp -d "${TMPDIR:-/tmp}/pancake_smoke.XXXXXX")"
 export HOME="$SMOKE_HOME"
 trap 'rm -rf "$SMOKE_HOME"' EXIT
 

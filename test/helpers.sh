@@ -12,6 +12,18 @@ set -uo pipefail
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$TEST_DIR/.." && pwd)"
 
+mktemp_dir() {
+    local tmp="${TMPDIR:-/tmp}"
+    tmp="${tmp%/}"
+    mktemp -d "${tmp}/${1:-pancake}.XXXXXX"
+}
+
+mktemp_file() {
+    local tmp="${TMPDIR:-/tmp}"
+    tmp="${tmp%/}"
+    mktemp "${tmp}/${1:-pancake}.XXXXXX"
+}
+
 COLOR_GREEN=$'\033[0;32m'
 COLOR_RED=$'\033[0;31m'
 COLOR_YELLOW=$'\033[0;33m'
@@ -94,7 +106,7 @@ assert_file_contains() {
 }
 
 setup_mock_home() {
-    MOCK_HOME="$(mktemp -d -t pancake_home)"
+    MOCK_HOME="$(mktemp_dir pancake_home)"
     export HOME="$MOCK_HOME"
     export USERPROFILE="$MOCK_HOME"
     export XDG_CONFIG_HOME="$MOCK_HOME/.config"
@@ -103,7 +115,7 @@ setup_mock_home() {
 
 build_pancake() {
     local build_out
-    build_out="$(mktemp -d -t pancake_build)"
+    build_out="$(mktemp_dir pancake_build)"
     local goos goarch output
     goos="$(uname -s | tr '[:upper:]' '[:lower:]')"
     goarch="$(uname -m)"

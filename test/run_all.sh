@@ -24,7 +24,7 @@ FAILED_SUITES=()
 
 run_suite() {
     local suite="$1" output_file
-    output_file="$(mktemp -t pancake_suite_XXXXXX.log)"
+    output_file="$(mktemp "${TMPDIR:-/tmp}/pancake_suite.XXXXXX.log")"
     printf '%s>>> %s%s\n' "$COLOR_BLUE" "$suite" "$COLOR_RESET"
     if bash "$suite" >"$output_file" 2>&1; then
         cat "$output_file"
