@@ -30,38 +30,45 @@ Everything your project needs will be installed. All the build and run configura
 
 ## Installation
 
-### Macos & Linux 
+### macOS & Linux
 To install or update the tool on macOS or Linux, run the following command in your terminal:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/a6h15hek/pancake/main/macos_linux.sh | bash
 ```
-To uninstall the tool, use the following command:
+To uninstall the tool (also removes config and projects):
 ```bash
-curl -fsSL https://raw.githubusercontent.com/a6h15hek/pancake/main/macos_linux.sh | bash -s -- uninstall
+curl -fsSL https://raw.githubusercontent.com/a6h15hek/pancake/main/macos_linux.sh | bash -s -- uninstall --purge
 ```
+Supported flags:
+- `--version <tag>`  Install a specific release tag (default: `latest`).
+- `--prefix <dir>`   Install prefix (default: `/usr/local`; falls back to `~/.local/bin`).
+- `--purge`          During uninstall, also remove `~/pancake.yml` and `~/pancake/`.
+- `--no-checksum`    Skip SHA-256 checksum verification (not recommended).
+- `--yes`            Assume yes to prompts (non-interactive / CI).
+
+Native binaries are provided for `amd64` and `arm64` (Apple Silicon, Linux arm64).
 
 ### Windows
-To install or update the tool on Windows, open PowerShell **as Administrator** and run the following command:
+To install or update the tool on Windows, run the following in PowerShell (admin is optional — without admin it installs per-user to `%LOCALAPPDATA%\Programs\Pancake`):
 ```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; 
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
 $script = (New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/a6h15hek/pancake/main/windows.ps1');
 & ([scriptblock]::Create($script)) -Action install
 ```
-
-To uninstall the tool, use the following command in PowerShell:
+To uninstall (also removes config and projects):
 ```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; 
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
 $script = (New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/a6h15hek/pancake/main/windows.ps1');
-& ([scriptblock]::Create($script)) -Action uninstall
+& ([scriptblock]::Create($script)) -Action uninstall -Purge
 ```
+Supported flags: `-Version <tag>`, `-Purge`, `-NoChecksum`, `-Force` (use per-user location even as admin).
 
 ### Using Go
 You can install the tool using `go install`:
-
 ```bash
 go install github.com/a6h15hek/pancake@latest
 ```
-Alternatively, download the pre-built binaries from the [Releases page](https://github.com/a6h15hek/pancake/releases).
+Alternatively, download the pre-built binaries from the [Releases page](https://github.com/a6h15hek/pancake/releases). Each release ships SHA-256 checksums in `checksums.txt`.
 
 ## Learn More
 ```sh
@@ -79,7 +86,7 @@ Step 3: Save, close and Run Command: `. $PROFILE`
 macOS and Linux \
 Step 1: Open shell config file: `nano ~/.bashrc` \
 Step 2: Add: `alias pc='pancake'` \
-Step 3: Save, reload: `source ~/.bashrc` \
+Step 3: Save, reload: `source ~/.bashrc` 
 
 
 ## Pancake AI
@@ -99,21 +106,21 @@ $ pancake ai "find all files larger than 10MB in my home directory"
 ### AI Configuration 
 To use Pancake AI, you need to configure your preferred AI provider in your $HOME/pancake.yml file. Add your API key for either Gemini or ChatGPT.
 
-```yml 
-default_ai: gemini # or chatgpt:
+```yml
+default_ai: gemini # or chatgpt
 
-api_key: "YOUR_OPENAI_API_KEY"
-temperature: 0.7
-url: "https://api.openai.com/v1/chat/completions"
-model: "gpt-3.5-turbo"
-context: "PRINT OUTPUT IN MARKDOWN. You are a helpful assistant that translates natural language into executable shell commands..."
-+gemini:
+chatgpt:
+  api_key: "YOUR_OPENAI_API_KEY"
+  temperature: 0.7
+  url: "https://api.openai.com/v1/chat/completions"
+  model: "gpt-3.5-turbo"
+  context: "PRINT OUTPUT IN MARKDOWN. You are a helpful assistant that translates natural language into executable shell commands..."
 
-api_key: "YOUR_GEMINI_API_KEY"
-temperature: 0.7
-url: "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
-context: "You are a helpful assistant that translates natural language into executable shell commands. Only provide the command, with no extra text or explanation."
-
+gemini:
+  api_key: "YOUR_GEMINI_API_KEY"
+  temperature: 0.7
+  url: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+  context: "You are a helpful assistant that translates natural language into executable shell commands. Only provide the command, with no extra text or explanation."
 ```
 
 ### Project Structure
@@ -121,21 +128,26 @@ context: "You are a helpful assistant that translates natural language into exec
 ```bash
 pancake/
 ├── utils/
-│   ├── constants.go
-│   ├── functions.go
-│   ├── structure.go
+│   ├── constants.go          # constants + troubleshooting messages
+│   ├── functions.go          # cross-platform shell/git helpers
+│   ├── structure.go          # config load/validate/update, env expansion
+│   ├── gemini_client.go      # Gemini AI client
+│   ├── chatgpt_client.go     # ChatGPT AI client
+│   ├── functions_test.go     # unit tests
+│   └── structure_test.go     # unit tests
 ├── cmd/
-│   ├── root.go
-│   ├── project.go
-│   ├── tools.go
+│   ├── root.go               # pancake init, version, edit config
+│   ├── project.go            # list/sync/open/build/run/pwd/monitor
+│   ├── tool.go               # tool install/uninstall/list/search/setup
+│   └── ai.go                 # pancake ai
+├── test/                     # e2e harness (mock HOME + mock release server)
+├── .github/workflows/        # CI (test.yml) + release (release.yml)
 ├── main.go
 ├── go.mod
 └── go.sum
-
 ```
 
 ### Running the project
-
 ```bash
 go build
 go install
@@ -149,7 +161,23 @@ pancake [args]
 home: $HOME/pancake # For MacOS & Linux
 #home: '%userprofile%/pancake' # For Windows
 
-code_editor: code # Preferred code editor (code -> VS Code, idea -> IntelliJ IDE)
+code_editor: code . # Preferred code editor (code -> VS Code, idea -> IntelliJ IDE)
+
+default_ai: gemini # or chatgpt
+
+chatgpt:
+  api_key: ""
+  temperature: 0.7
+  url: "https://api.openai.com/v1/chat/completions"
+  model: "gpt-3.5-turbo"
+  context: "PRINT OUTPUT IN MARKDOWN. You are a helpful assistant that translates natural language into executable shell commands..."
+
+gemini:
+  api_key: ""
+  temperature: 0.7
+  url: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+  context: "You are a helpful assistant that translates natural language into executable shell commands. Only provide the command, with no extra text or explanation."
+
 tools:
   - tree
 projects:
@@ -165,11 +193,29 @@ projects:
     build: npm install
 ```
 
+Config validation: `pancake` checks `home` is set and absolute, `default_ai` is `gemini`/`chatgpt` (or empty), project names contain no path separators, and every project has a `remote_ssh_url`. On any failure it prints an actionable message pointing you at the field to fix in `pancake.yml`.
+
 ### Build Binaries
 ```bash
-GOOS=linux GOARCH=amd64 go build -o pancake-linux-amd64
-GOOS=darwin GOARCH=amd64 go build -o pancake-darwin-amd64
-GOOS=windows GOARCH=amd64 go build -o pancake-windows-amd64.exe
+./build.sh              # builds all 6 targets + checksums.txt into ./build/
+./build.sh v1.2.0       # embed a specific version
 ```
+Targets: `linux/{amd64,arm64}`, `darwin/{amd64,arm64}`, `windows/{amd64,arm64}`. The version is injected via `-ldflags` and reported by `pancake version`. `checksums.txt` is what the install scripts verify.
+
+### Testing
+```bash
+go test ./...           # Go unit tests (utils package)
+./test/run_all.sh       # full e2e harness (builds binary, mock HOME, mock release server)
+./test/run_all.sh 01 03 # run only specific suites
+```
+The e2e harness builds the real binary and runs it inside an isolated `mktemp` HOME so your real `~/pancake.yml` is never touched. Install-script tests spin up a local HTTP server mocking a GitHub release with real SHA-256 checksums. See [`test/README.md`](test/README.md) for details.
+
+### Troubleshooting
+- `pancake edit config` opens `~/pancake.yml` in your default editor.
+- `pancake init --force` re-creates a fresh config (backs up the old one to `pancake.yml.bak`).
+- `pancake version` shows the installed version.
+- If a project command fails with "pancake.yml was not found", run `pancake init`.
+- If sync fails, ensure your SSH key is set up (`ssh -T git@github.com`) or switch `remote_ssh_url` to an HTTPS URL in `pancake.yml`.
+- Docs: [USAGE.md](USAGE.md) and [open an issue](https://github.com/a6h15hek/pancake/issues).
 
 Thank you for visiting the Pancake repository! Feel free to fork and 🌟 the repository!
