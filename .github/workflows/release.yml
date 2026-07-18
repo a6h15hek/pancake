@@ -21,6 +21,11 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
+
+concurrency:
+  group: release-on-main
+  cancel-in-progress: false
 
 jobs:
   release:
@@ -102,23 +107,7 @@ jobs:
         if: steps.version.outputs.skip == 'true'
         run: echo "Nothing to release."
 
-      - name: Bump Version in constants.go and commit
-        if: steps.version.outputs.skip != 'true'
-        id: bump
-        run: |
-          set -euo pipefail
-          NEW_VERSION="${{ steps.version.outputs.new_version }}"
-          sed -i.bak -E "s/^var Version = .*/var Version = \"${NEW_VERSION}\"/" utils/constants.go
-          rm -f utils/constants.go.bak
-          grep "var Version" utils/constants.go
-          git add utils/constants.go
-          git commit -m "chore(release): bump version to ${NEW_VERSION} [skip release]"
-          git push origin main
-          NEW_SHA=$(git rev-parse HEAD)
-          echo "new_sha=$NEW_SHA" >> "$GITHUB_OUTPUT"
-          echo "Committed version bump to ${NEW_VERSION} at $NEW_SHA"
-
-      - name: Build all targets
+      - name: Build all targets with version injected via ldflags
         if: steps.version.outputs.skip != 'true'
         run: |
           ./build.sh "${{ steps.version.outputs.new_version }}"
@@ -145,7 +134,7 @@ jobs:
         with:
           tag_name: ${{ steps.version.outputs.new_version }}
           name: ${{ steps.version.outputs.new_version }}
-          target_commitish: ${{ steps.bump.outputs.new_sha }}
+          target_commitish: ${{ github.sha }}
           generate_release_notes: true
           files: |
             build/pancake-linux-amd64
@@ -157,8 +146,30 @@ jobs:
             build/checksums.txt
             build/readme.txt
 
+      - name: Open PR to bump Version in constants.go
+        if: steps.version.outputs.skip != 'true' && github.event_name == 'push'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          NEW_VERSION="${{ steps.version.outputs.new_version }}"
+          BRANCH="chore/bump-${NEW_VERSION}"
+          git checkout -b "$BRANCH"
+          sed -i.bak -E "s/^var Version = .*/var Version = \"${NEW_VERSION}\"/" utils/constants.go
+          rm -f utils/constants.go.bak
+          grep "var Version" utils/constants.go
+          git add utils/constants.go
+          git commit -m "chore(release): bump version to ${NEW_VERSION} [skip release]"
+          git push origin "$BRANCH"
+          PR_BODY="Automatic version bump to ${NEW_VERSION} produced by the release workflow. The released binaries already report ${NEW_VERSION} via -ldflags; this PR updates the fallback default in source so 'go install' users see the right version too."
+          PR_URL=$(gh pr create --title "chore(release): bump version to ${NEW_VERSION}" \
+            --body "$PR_BODY" --base main --head "$BRANCH" 2>&1 || true)
+          echo "Version bump PR: $PR_URL"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Release summary
         if: steps.version.outputs.skip != 'true'
         run: |
           echo "Release ${{ steps.version.outputs.new_version }} published."
           echo "Assets uploaded to https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.new_version }}"
+          echo "Tag points at merge commit ${{ github.sha }} (no push to protected main)."
