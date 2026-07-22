@@ -41,6 +41,13 @@ test/
 - Install script: `macos_linux.sh` downloads from a local HTTP server (mock GitHub
   release), verifies the SHA-256 checksum, installs to a writable prefix, and
   `uninstall --purge` removes binary + config + projects.
+- Install edge cases: flags missing their value fail clearly; a leftover copy from a
+  previous install elsewhere is reported but never deleted without interactive
+  consent; with no TTY and an unwritable default prefix the installer falls back to
+  `~/.local/bin`; an explicitly requested unwritable prefix fails loudly; uninstall
+  removes copies from every known location (prefix and `~/.local/bin`), not just one.
+  (The no-TTY privilege tests need a non-root user and are skipped when running as
+  root or on an interactive terminal without `setsid`.)
 - Cross-platform: the e2e harness runs on macOS and Linux. Windows e2e runs in CI via
   PowerShell.
 
