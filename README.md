@@ -31,7 +31,7 @@ Everything your project needs will be installed. All the build and run configura
 ## Installation
 
 ### macOS & Linux
-To install or update the tool on macOS or Linux, run the following command in your terminal:
+To install or update the tool on macOS or Linux, run the following command in your terminal (no `sudo` needed — the script asks only if it has to):
 ```bash
 curl -fsSL https://raw.githubusercontent.com/a6h15hek/pancake/main/macos_linux.sh | bash
 ```
@@ -46,7 +46,18 @@ Supported flags:
 - `--no-checksum`    Skip SHA-256 checksum verification (not recommended).
 - `--yes`            Assume yes to prompts (non-interactive / CI).
 
-Native binaries are provided for `amd64` and `arm64` (Apple Silicon, Linux arm64).
+Native binaries are provided for `amd64` and `arm64` (Apple Silicon, Linux arm64). Apple Silicon terminals running under Rosetta 2 automatically get the native `arm64` build.
+
+How the installer handles permissions (in order):
+1. If `/usr/local/bin` is writable (or you are root), it installs directly.
+2. If your sudo credentials are already cached, it reuses them.
+3. If a terminal is available, it asks before using sudo — even when piped through `curl | bash`.
+4. Otherwise it installs to `~/.local/bin` (per-user, no privileges needed) and prints the PATH line to add.
+
+Reinstalling and upgrading:
+- Re-running the install command upgrades in place — even while pancake is running.
+- If an older install exists at a different location (e.g. a past install in `~/.local/bin` and a new one in `/usr/local/bin`), the installer detects it, warns that it may shadow the new binary, and offers to remove it.
+- `uninstall` removes pancake from every known location (`<prefix>/bin`, `~/.local/bin`, `~/bin`, and anything else on your PATH), and points you at `brew uninstall pancake` if a copy is managed by Homebrew.
 
 ### Windows
 To install or update the tool on Windows, run the following in PowerShell (admin is optional — without admin it installs per-user to `%LOCALAPPDATA%\Programs\Pancake`):
@@ -61,7 +72,13 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 $script = (New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/a6h15hek/pancake/main/windows.ps1');
 & ([scriptblock]::Create($script)) -Action uninstall -Purge
 ```
-Supported flags: `-Version <tag>`, `-Purge`, `-NoChecksum`, `-Force` (use per-user location even as admin).
+Supported flags: `-Version <tag>`, `-Purge`, `-NoChecksum`, `-Force` (use per-user location even as admin), `-Yes` (assume yes to prompts / CI).
+
+Notes:
+- Both `amd64` and `arm64` Windows are supported; the script picks the right binary automatically.
+- The SHA-256 checksum is verified **before** the new binary replaces an existing install, so a bad download can never break a working setup.
+- Reinstalls across privilege levels are handled: if pancake was previously installed as admin (`Program Files`) and you reinstall as a regular user (or vice versa), the leftover copy is removed (or you are told to run once elevated to clean it up) so it cannot shadow the new one.
+- `uninstall` checks both install locations and cleans the PATH entries it added.
 
 ### Using Go
 You can install the tool using `go install`:
@@ -220,6 +237,8 @@ go test ./...           # Go unit tests (utils package)
 The e2e harness builds the real binary and runs it inside an isolated `mktemp` HOME so your real `~/pancake.yml` is never touched. Install-script tests spin up a local HTTP server mocking a GitHub release with real SHA-256 checksums. See [`test/README.md`](test/README.md) for details.
 
 ### Troubleshooting
+- `pancake: command not found` right after installing: the install directory is not on your PATH yet — the installer prints the exact line to add (or just open a new terminal on Windows).
+- An old version still runs after upgrading: a leftover copy from a previous install is earlier in your PATH. Run the installer again in an interactive terminal (it offers to remove stale copies), or run `uninstall` followed by a fresh install.
 - `pancake edit config` opens `~/pancake.yml` in your default editor.
 - `pancake init --force` re-creates a fresh config (backs up the old one to `pancake.yml.bak`).
 - `pancake version` shows the installed version.

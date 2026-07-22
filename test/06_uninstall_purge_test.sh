@@ -7,6 +7,9 @@
 set -uo pipefail
 source "$(dirname "$0")/helpers.sh"
 
+# The installer can prompt via /dev/tty; keep the suite non-interactive.
+exec </dev/null
+
 set_suite "06 uninstall & --purge"
 
 build_pancake >/dev/null || { fail "build pancake"; exit 1; }
@@ -93,6 +96,19 @@ assert_file_exists "projects kept without purge" "$setup_mock_home_2/pancake/dem
 rm -f "$INSTALL_PREFIX/bin/pancake"
 assert_contains "uninstall when absent is graceful" "not found" \
     env HOME="$setup_mock_home_2" bash "$PATCHED_SCRIPT" uninstall --prefix "$INSTALL_PREFIX" --yes
+
+# Reinstalled-across-locations scenario: copies exist in BOTH the prefix and
+# ~/.local/bin (a past install used a different location). Uninstall must
+# remove every copy, not just the current prefix.
+multi_home="$(mktemp_dir pancake_home3)"
+mkdir -p "$multi_home/.local/bin" "$INSTALL_PREFIX/bin"
+cp "$PANCAKE_BIN" "$INSTALL_PREFIX/bin/pancake"
+cp "$PANCAKE_BIN" "$multi_home/.local/bin/pancake"
+assert_exit_code 0 "uninstall with copies in two locations succeeds" \
+    env HOME="$multi_home" bash "$PATCHED_SCRIPT" uninstall --prefix "$INSTALL_PREFIX" --yes
+assert_file_missing "prefix copy removed" "$INSTALL_PREFIX/bin/pancake"
+assert_file_missing "per-user copy removed too" "$multi_home/.local/bin/pancake"
+rm -rf "$multi_home"
 
 stop_mock_release_server
 rm -rf "$STAGE_DIR" "$PATCHED_SCRIPT" "$INSTALL_PREFIX" "$MOCK_HOME" "$setup_mock_home_2"
